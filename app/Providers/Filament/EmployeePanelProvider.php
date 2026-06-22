@@ -29,10 +29,15 @@ class EmployeePanelProvider extends PanelProvider
             ->default()
             ->id('employee')
             ->path('')
+            ->viteTheme('resources/css/filament/employee/theme.css')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
+            ->darkMode(false)
+            ->sidebarWidth('14rem')
+            ->sidebarCollapsibleOnDesktop()
+            ->font('Instrument Sans')
             ->discoverResources(in: app_path('Filament/Employee/Resources'), for: 'App\Filament\Employee\Resources')
             ->discoverPages(in: app_path('Filament/Employee/Pages'), for: 'App\Filament\Employee\Pages')
             ->pages([

@@ -30,8 +30,12 @@ class HrdPanelProvider extends PanelProvider
             ->path('hrd')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
+            ->darkMode(false)
+            ->sidebarWidth('14rem')
+            ->sidebarCollapsibleOnDesktop()
+            ->font('Instrument Sans')
             ->discoverResources(in: app_path('Filament/Hrd/Resources'), for: 'App\Filament\Hrd\Resources')
             ->discoverPages(in: app_path('Filament/Hrd/Pages'), for: 'App\Filament\Hrd\Pages')
             ->pages([
