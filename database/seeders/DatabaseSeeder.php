@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Office;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -17,6 +18,16 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
+        ]);
+
+        // Create default office (example: Jakarta office)
+        $office = Office::create([
+            'name' => 'Main Office - Jakarta',
+            'latitude' => -6.2088,
+            'longitude' => 106.8456,
+            'radius_meters' => 100,
+            'work_start' => '08:00:00',
+            'work_end' => '17:00:00',
         ]);
 
         User::factory()->create([
