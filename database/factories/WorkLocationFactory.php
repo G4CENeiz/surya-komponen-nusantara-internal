@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Workplace;
+use App\Models\WorkLocation;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Workplace>
+ * @extends Factory<WorkLocation>
  */
-class WorkplaceFactory extends Factory
+class WorkLocationFactory extends Factory
 {
     protected static int $counter = 0;
 
@@ -18,7 +18,7 @@ class WorkplaceFactory extends Factory
 
         return [
             'name' => fake()->city().' Office '.static::$counter,
-            'code' => 'WP-'.str_pad(static::$counter, 3, '0', STR_PAD_LEFT),
+            'code' => 'LOC-'.str_pad(static::$counter, 3, '0', STR_PAD_LEFT),
             'address' => fake()->address(),
             'latitude' => fake()->latitude(-10, 10),
             'longitude' => fake()->longitude(100, 140),

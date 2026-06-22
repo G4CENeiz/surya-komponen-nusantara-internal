@@ -64,11 +64,12 @@ class AttendanceService
         // Server-side timestamp (never trust client)
         $serverNow = Carbon::now();
 
-        // Check if late
+        // Check if late — use employee shift time
         $isLate = false;
-        if ($workplace) {
-            $workStart = Carbon::parse($workplace->work_start);
-            $isLate = $serverNow->format('H:i:s') > $workStart->format('H:i:s');
+        $employee = $user->employee;
+        if ($employee?->shift_start_time) {
+            $shiftStart = Carbon::parse($employee->shift_start_time);
+            $isLate = $serverNow->format('H:i:s') > $shiftStart->format('H:i:s');
         }
 
         $attendance = DB::transaction(function () use (
@@ -185,11 +186,12 @@ class AttendanceService
         // Server-side timestamp
         $serverNow = Carbon::now();
 
-        // Check if early leave
+        // Check if early leave — use employee shift time
         $isEarlyLeave = false;
-        if ($workplace) {
-            $workEnd = Carbon::parse($workplace->work_end);
-            $isEarlyLeave = $serverNow->format('H:i:s') < $workEnd->format('H:i:s');
+        $employee = $user->employee;
+        if ($employee?->shift_end_time) {
+            $shiftEnd = Carbon::parse($employee->shift_end_time);
+            $isEarlyLeave = $serverNow->format('H:i:s') < $shiftEnd->format('H:i:s');
         }
 
         // Calculate worked hours

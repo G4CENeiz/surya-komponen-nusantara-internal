@@ -94,4 +94,35 @@ class SubmissionFactory extends Factory
             'review_notes' => fake()->sentence(),
         ]);
     }
+
+    public function forEmployee(Employee $employee): static
+    {
+        return $this->state(fn () => [
+            'employee_id' => $employee->id,
+        ]);
+    }
+
+    public function forDate(string $date): static
+    {
+        return $this->state(fn () => [
+            'start_date' => $date,
+            'end_date' => $date,
+            'overtime_date' => $date,
+        ]);
+    }
+
+    public function thisWeek(): static
+    {
+        return $this->state(fn () => [
+            'start_date' => fake()->dateTimeBetween('-3 days', 'now'),
+            'end_date' => fake()->dateTimeBetween('now', '+3 days'),
+        ]);
+    }
+
+    public function reviewedBy(User $reviewer): static
+    {
+        return $this->state(fn () => [
+            'reviewed_by' => $reviewer->id,
+        ]);
+    }
 }

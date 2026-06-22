@@ -2,18 +2,22 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Hrd\Pages\HrdDashboard;
+use App\Filament\Hrd\Widgets\AttendanceTrendChart;
+use App\Filament\Hrd\Widgets\EmployeeDistributionChart;
+use App\Filament\Hrd\Widgets\HrdOverview;
+use App\Filament\Hrd\Widgets\LatestEmployeesWidget;
+use App\Filament\Hrd\Widgets\PendingSubmissionsWidget;
+use App\Filament\Hrd\Widgets\RecentAnnouncementsWidget;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -29,6 +33,9 @@ class HrdPanelProvider extends PanelProvider
             ->id('hrd')
             ->path('hrd')
             ->login()
+            ->brandName('SKN — HRD Panel')
+            ->favicon(asset('favicon.ico'))
+            ->darkMode()
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -39,12 +46,16 @@ class HrdPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Hrd/Resources'), for: 'App\Filament\Hrd\Resources')
             ->discoverPages(in: app_path('Filament/Hrd/Pages'), for: 'App\Filament\Hrd\Pages')
             ->pages([
-                // Custom dashboard generated in app/Filament/Hrd/Pages
+                HrdDashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Hrd/Widgets'), for: 'App\Filament\Hrd\Widgets')
             ->widgets([
-                AccountWidget::class,
-                FilamentInfoWidget::class,
+                HrdOverview::class,
+                EmployeeDistributionChart::class,
+                AttendanceTrendChart::class,
+                LatestEmployeesWidget::class,
+                PendingSubmissionsWidget::class,
+                RecentAnnouncementsWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

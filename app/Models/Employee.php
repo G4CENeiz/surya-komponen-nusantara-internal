@@ -29,6 +29,9 @@ class Employee extends Model
         'hire_date',
         'termination_date',
         'status',
+        'shift_name',
+        'shift_start_time',
+        'shift_end_time',
         'face_photo_path',
         'base_salary',
     ];
@@ -39,6 +42,8 @@ class Employee extends Model
             'date_of_birth' => 'date',
             'hire_date' => 'date',
             'termination_date' => 'date',
+            'shift_start_time' => 'date:H:i',
+            'shift_end_time' => 'date:H:i',
             'base_salary' => 'decimal:2',
         ];
     }

@@ -10,7 +10,9 @@ class RecentAnnouncementsWidget extends Widget
 {
     protected string $view = 'filament.hrd.widgets.recent-announcements';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 6;
+
+    protected int|string|array $columnSpan = 'full';
 
     public function getAnnouncements(): Collection
     {

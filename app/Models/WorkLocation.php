@@ -6,28 +6,27 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class JobClass extends Model
+class WorkLocation extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
         'code',
-        'level',
-        'min_salary',
-        'max_salary',
-        'base_allowance',
-        'description',
+        'address',
+        'latitude',
+        'longitude',
+        'radius_meters',
+        'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'level' => 'integer',
-            'min_salary' => 'decimal:2',
-            'max_salary' => 'decimal:2',
-            'base_allowance' => 'decimal:2',
-
+            'latitude' => 'decimal:8',
+            'longitude' => 'decimal:8',
+            'radius_meters' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 
