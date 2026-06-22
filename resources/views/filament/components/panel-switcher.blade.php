@@ -1,5 +1,5 @@
 @php
-    $currentPanel = \Filament\Filament::getCurrentPanel()->getId();
+    $currentPanel = \Filament\Facades\Filament::getCurrentPanel()?->getId() ?? 'employee';
 @endphp
 
 <div class="mt-6">
