@@ -88,6 +88,7 @@ class AssignmentResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('creator.name')
                     ->label('Created By')
+                    ->placeholder('Unknown')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')
