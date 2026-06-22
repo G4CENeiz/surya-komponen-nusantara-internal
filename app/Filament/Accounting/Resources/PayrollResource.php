@@ -5,8 +5,9 @@ namespace App\Filament\Accounting\Resources;
 use App\Filament\Accounting\Resources\PayrollResource\Pages;
 use App\Models\Payroll;
 use BackedEnum;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Placeholder;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Placeholder;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -126,7 +127,7 @@ class PayrollResource extends Resource
             ])
             ->defaultSort('user.name', 'asc')
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                ViewAction::make(),
             ])
             ->bulkActions([]);
     }

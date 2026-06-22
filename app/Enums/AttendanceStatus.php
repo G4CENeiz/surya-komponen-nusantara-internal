@@ -10,6 +10,9 @@ enum AttendanceStatus: string
     case Sick = 'sick';
     case FieldDuty = 'field_duty';
     case Absent = 'absent';
+    case PendingHr = 'pending_hr';
+    case Approved = 'approved';
+    case Rejected = 'rejected';
 
     public function label(): string
     {
@@ -20,6 +23,9 @@ enum AttendanceStatus: string
             self::Sick => 'Sick',
             self::FieldDuty => 'Field Duty',
             self::Absent => 'Absent',
+            self::PendingHr => 'Pending HR Review',
+            self::Approved => 'Approved',
+            self::Rejected => 'Rejected',
         };
     }
 
@@ -32,6 +38,9 @@ enum AttendanceStatus: string
             self::Sick => 'danger',
             self::FieldDuty => 'info',
             self::Absent => 'danger',
+            self::PendingHr => 'warning',
+            self::Approved => 'success',
+            self::Rejected => 'danger',
         };
     }
 }

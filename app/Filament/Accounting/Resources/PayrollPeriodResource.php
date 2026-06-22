@@ -11,6 +11,7 @@ use App\Models\User;
 use BackedEnum;
 use Carbon\Carbon;
 use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -103,7 +104,7 @@ class PayrollPeriodResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
                 Action::make('generatePayrolls')
                     ->label('Generate Slip')
                     ->icon('heroicon-o-calculator')

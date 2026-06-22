@@ -4,6 +4,7 @@ namespace App\Filament\Employee\Pages;
 
 use App\Models\Announcement;
 use BackedEnum;
+use Filament\Actions\ViewAction;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -43,7 +44,7 @@ class Announcements extends Page implements Tables\Contracts\HasTable
             ->defaultSort('published_at', 'desc')
             ->paginated([10])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                ViewAction::make(),
             ]);
     }
 }
