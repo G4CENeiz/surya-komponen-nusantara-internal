@@ -6,7 +6,6 @@ use App\Enums\AttendanceStatus;
 use App\Models\Attendance as AttendanceModel;
 use App\Services\AttendanceService;
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
@@ -64,7 +63,7 @@ class Attendance extends Page
         // Big clock
         $todayHtml .= '<div style="text-align: center;">';
         $todayHtml .= '<div x-data="{ time: \'--:--:-- --\' }" x-init="const u = () => { const n = new Date(); time = n.toLocaleTimeString(\'en-US\', { hour: \'2-digit\', minute: \'2-digit\', second: \'2-digit\', hour12: true }); }; u(); setInterval(u, 1000);" style="font-size: 3rem; font-family: monospace; font-weight: 700; letter-spacing: 0.05em; color: inherit;" x-text="time"></div>';
-        $todayHtml .= '<div style="font-size: 0.875rem; opacity: 0.6; margin-top: 0.5rem;">' . now()->format('l, F j, Y') . '</div>';
+        $todayHtml .= '<div style="font-size: 0.875rem; opacity: 0.6; margin-top: 0.5rem;">'.now()->format('l, F j, Y').'</div>';
         $todayHtml .= '</div>';
 
         // Stats grid
@@ -80,11 +79,11 @@ class Attendance extends Page
 
         foreach ($items as $item) {
             $todayHtml .= '<div>';
-            $todayHtml .= '<div style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">' . $item['label'] . '</div>';
+            $todayHtml .= '<div style="font-size: 0.75rem; opacity: 0.6; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">'.$item['label'].'</div>';
             if ($item['badge'] !== '') {
-                $todayHtml .= '<div style="margin-top: 0.25rem;">' . $item['badge'] . '</div>';
+                $todayHtml .= '<div style="margin-top: 0.25rem;">'.$item['badge'].'</div>';
             } else {
-                $todayHtml .= '<div style="font-size: 1.125rem; font-weight: 600;">' . $item['value'] . '</div>';
+                $todayHtml .= '<div style="font-size: 1.125rem; font-weight: 600;">'.$item['value'].'</div>';
             }
             $todayHtml .= '</div>';
         }
@@ -96,10 +95,10 @@ class Attendance extends Page
         $clockOutDisabled = $this->canClockOut ? '' : 'opacity: 0.5; cursor: not-allowed;';
 
         $todayHtml .= '<div style="display: flex; justify-content: center; gap: 1rem; width: 100%;">';
-        $todayHtml .= '<button wire:click="mountAction(\'clock-in\')" style="' . $clockInDisabled . 'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: white; background-color: #22c55e; transition: background-color 0.15s;">';
+        $todayHtml .= '<button wire:click="mountAction(\'clock-in\')" style="'.$clockInDisabled.'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: white; background-color: #22c55e; transition: background-color 0.15s;">';
         $todayHtml .= '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>';
         $todayHtml .= 'Clock In</button>';
-        $todayHtml .= '<button wire:click="mountAction(\'clock-out\')" style="' . $clockOutDisabled . 'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: white; background-color: #ef4444; transition: background-color 0.15s;">';
+        $todayHtml .= '<button wire:click="mountAction(\'clock-out\')" style="'.$clockOutDisabled.'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: white; background-color: #ef4444; transition: background-color 0.15s;">';
         $todayHtml .= '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0110.5 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0116.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3 0l-3-3m0 0l3-3m-3 3H9" /></svg>';
         $todayHtml .= 'Clock Out</button>';
         $todayHtml .= '</div>';
@@ -117,17 +116,17 @@ class Attendance extends Page
                 $nameStyle = $isCurrentUser ? 'font-weight: 700; color: #2563eb;' : 'color: #111827;';
                 $bgStyle = $isCurrentUser ? 'background-color: #eff6ff;' : '';
                 $medals = [1 => '🥇', 2 => '🥈', 3 => '🥉'];
-                $medal = $medals[$rank] ?? ($rank . '.');
+                $medal = $medals[$rank] ?? ($rank.'.');
                 $lateBadge = $entry['is_late'] ? $this->badge('Late', 'danger', true) : '';
                 $name = e($entry['name']);
                 $clockInTime = e($entry['clock_in_at']);
-                $leaderboardHtml .= '<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-radius: 0.5rem; ' . $bgStyle . '">';
+                $leaderboardHtml .= '<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-radius: 0.5rem; '.$bgStyle.'">';
                 $leaderboardHtml .= '<div style="display: flex; align-items: center; gap: 0.5rem;">';
-                $leaderboardHtml .= '<span style="font-size: 0.875rem; width: 2rem;">' . $medal . '</span>';
-                $leaderboardHtml .= '<span style="font-size: 0.875rem; ' . $nameStyle . '">' . $name . '</span>';
+                $leaderboardHtml .= '<span style="font-size: 0.875rem; width: 2rem;">'.$medal.'</span>';
+                $leaderboardHtml .= '<span style="font-size: 0.875rem; '.$nameStyle.'">'.$name.'</span>';
                 $leaderboardHtml .= $lateBadge;
                 $leaderboardHtml .= '</div>';
-                $leaderboardHtml .= '<span style="font-size: 0.875rem; color: #6b7280;">' . $clockInTime . '</span>';
+                $leaderboardHtml .= '<span style="font-size: 0.875rem; color: #6b7280;">'.$clockInTime.'</span>';
                 $leaderboardHtml .= '</div>';
                 $rank++;
             }

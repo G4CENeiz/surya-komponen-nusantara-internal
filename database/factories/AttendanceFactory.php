@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Office;
 use App\Models\User;
+use App\Models\Workplace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AttendanceFactory extends Factory
@@ -15,7 +15,7 @@ class AttendanceFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'office_id' => Office::factory(),
+            'workplace_id' => Workplace::factory(),
             'date' => fake()->date(),
             'clock_in_at' => fake()->dateTime(),
             'clock_in_lat' => fake()->randomFloat(7, 0, 999.9999999),

@@ -11,24 +11,28 @@ class Assignment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'title',
         'description',
-        'due_date',
-        'status',
+        'assigned_to',
         'created_by',
+        'start_date',
+        'end_date',
+        'notes',
+        'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'due_date' => 'date',
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'is_active' => 'boolean',
         ];
     }
 
-    public function user(): BelongsTo
+    public function assignee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     public function creator(): BelongsTo

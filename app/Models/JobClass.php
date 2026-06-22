@@ -12,21 +12,28 @@ class JobClass extends Model
 
     protected $fillable = [
         'name',
-        'base_salary',
-        'allowance',
+        'code',
+        'level',
+        'min_salary',
+        'max_salary',
+        'base_allowance',
+        'other_allowances',
         'description',
     ];
 
     protected function casts(): array
     {
         return [
-            'base_salary' => 'decimal:2',
-            'allowance' => 'decimal:2',
+            'level' => 'integer',
+            'min_salary' => 'decimal:2',
+            'max_salary' => 'decimal:2',
+            'base_allowance' => 'decimal:2',
+            'other_allowances' => 'decimal:2',
         ];
     }
 
-    public function users(): HasMany
+    public function employees(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Employee::class);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Office;
+use App\Models\Workplace;
 
 class GeolocationService
 {
@@ -33,21 +33,21 @@ class GeolocationService
     }
 
     /**
-     * Check if a point is within the office geofence.
+     * Check if a point is within the workplace geofence.
      */
-    public function isWithinOffice(float $lat, float $lng, Office $office): bool
+    public function isWithinWorkplace(float $lat, float $lng, Workplace $workplace): bool
     {
-        $distance = $this->distanceInMeters($lat, $lng, $office->latitude, $office->longitude);
+        $distance = $this->distanceInMeters($lat, $lng, $workplace->latitude, $workplace->longitude);
 
-        return $distance <= $office->radius_meters;
+        return $distance <= $workplace->radius_meters;
     }
 
     /**
-     * Get the distance from a point to the office in meters.
+     * Get the distance from a point to the workplace in meters.
      */
-    public function distanceToOffice(float $lat, float $lng, Office $office): float
+    public function distanceToWorkplace(float $lat, float $lng, Workplace $workplace): float
     {
-        return $this->distanceInMeters($lat, $lng, $office->latitude, $office->longitude);
+        return $this->distanceInMeters($lat, $lng, $workplace->latitude, $workplace->longitude);
     }
 
     /**

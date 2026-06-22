@@ -9,14 +9,13 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'face_photo', 'nik', 'department', 'job_class_id', 'office_id', 'employment_status'])]
+#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -40,6 +39,11 @@ class User extends Authenticatable implements FilamentUser
         return false;
     }
 
+    public function employee(): HasOne
+    {
+        return $this->hasOne(Employee::class);
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
@@ -50,29 +54,14 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Attendance::class)->whereDate('date', now()->toDateString());
     }
 
-    public function jobClass(): BelongsTo
+    public function timeOffs(): HasMany
     {
-        return $this->belongsTo(JobClass::class);
+        return $this->hasMany(TimeOff::class);
     }
 
-    public function office(): BelongsTo
+    public function overtimes(): HasMany
     {
-        return $this->belongsTo(Office::class);
-    }
-
-    public function leaveRequests(): HasMany
-    {
-        return $this->hasMany(LeaveRequest::class);
-    }
-
-    public function assignments(): HasMany
-    {
-        return $this->hasMany(Assignment::class);
-    }
-
-    public function payrolls(): HasMany
-    {
-        return $this->hasMany(Payroll::class);
+        return $this->hasMany(Overtime::class);
     }
 
     /**

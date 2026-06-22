@@ -5,6 +5,7 @@ namespace App\Filament\Hrd\Resources;
 use App\Filament\Hrd\Resources\JobClassResource\Pages;
 use App\Models\JobClass;
 use BackedEnum;
+use Filament\Actions;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -17,34 +18,54 @@ class JobClassResource extends Resource
 {
     protected static ?string $model = JobClass::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
-
-    protected static ?string $navigationLabel = 'Kelas Jabatan';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->label('Nama Kelas Jabatan')
+                    ->label('Job Title')
                     ->required()
-                    ->maxLength(255),
-                TextInput::make('base_salary')
-                    ->label('Gaji Pokok')
+                    ->maxLength(255)
+                    ->placeholder('e.g. Staff, Supervisor, Manager'),
+                TextInput::make('code')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255)
+                    ->placeholder('e.g. STF-001'),
+                TextInput::make('level')
+                    ->required()
+                    ->numeric()
+                    ->integer()
+                    ->minValue(1)
+                    ->placeholder('1, 2, 3...'),
+                TextInput::make('min_salary')
+                    ->label('Base Salary (Min)')
+                    ->required()
                     ->numeric()
                     ->prefix('Rp')
-                    ->required(),
-                TextInput::make('allowance')
-                    ->label('Tunjangan')
+                    ->placeholder('3500000'),
+                TextInput::make('max_salary')
+                    ->label('Base Salary (Max)')
+                    ->required()
                     ->numeric()
                     ->prefix('Rp')
-                    ->default(0),
+                    ->placeholder('5500000'),
+                TextInput::make('base_allowance')
+                    ->label('Allowance')
+                    ->required()
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('Rp')
+                    ->placeholder('500000'),
                 Textarea::make('description')
-                    ->label('Deskripsi')
                     ->rows(3)
-                    ->columnSpanFull(),
+                    ->placeholder('Job class description...'),
             ]);
     }
 
@@ -52,36 +73,55 @@ class JobClassResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nama')
+                Tables\Columns\TextColumn::make('code')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('base_salary')
-                    ->label('Gaji Pokok')
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Job Title')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('level')
+                    ->sortable()
+                    ->badge(),
+                Tables\Columns\TextColumn::make('min_salary')
+                    ->label('Base Salary (Min)')
                     ->money('IDR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('allowance')
-                    ->label('Tunjangan')
+                Tables\Columns\TextColumn::make('max_salary')
+                    ->label('Base Salary (Max)')
                     ->money('IDR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('users_count')
-                    ->label('Jumlah Pegawai')
-                    ->counts('users')
+                Tables\Columns\TextColumn::make('base_allowance')
+                    ->label('Allowance')
+                    ->money('IDR'),
+                Tables\Columns\TextColumn::make('employees_count')
+                    ->counts('employees')
+                    ->label('Employees')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('updated_at')
+                Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->filters([
+                //
+            ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array

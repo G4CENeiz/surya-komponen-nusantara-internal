@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Enums\AttendanceStatus;
 use App\Models\Attendance;
 use App\Models\AttendanceLog;
-use App\Models\Office;
 use App\Models\User;
+use App\Models\Workplace;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,15 +44,15 @@ class AttendanceService
             ];
         }
 
-        $office = $this->findNearestOffice($lat, $lng);
+        $workplace = $this->findNearestWorkplace($lat, $lng);
 
         // Validate geofence
         $withinGeofence = false;
-        $distanceToOffice = null;
+        $distanceToWorkplace = null;
 
-        if ($office) {
-            $withinGeofence = $this->geoService->isWithinOffice($lat, $lng, $office);
-            $distanceToOffice = $this->geoService->distanceToOffice($lat, $lng, $office);
+        if ($workplace) {
+            $withinGeofence = $this->geoService->isWithinWorkplace($lat, $lng, $workplace);
+            $distanceToWorkplace = $this->geoService->distanceToWorkplace($lat, $lng, $workplace);
         }
 
         // Detect GPS spoofing
@@ -66,20 +66,20 @@ class AttendanceService
 
         // Check if late
         $isLate = false;
-        if ($office) {
-            $workStart = Carbon::parse($office->work_start);
+        if ($workplace) {
+            $workStart = Carbon::parse($workplace->work_start);
             $isLate = $serverNow->format('H:i:s') > $workStart->format('H:i:s');
         }
 
         $attendance = DB::transaction(function () use (
-            $user, $office, $lat, $lng, $request, $withinGeofence,
+            $user, $workplace, $lat, $lng, $request, $withinGeofence,
             $method, $serverNow, $isLate, $today, $spoofingIndicators,
-            $gpsAccuracy, $gpsSpeed, $distanceToOffice
+            $gpsAccuracy, $gpsSpeed, $distanceToWorkplace
         ) {
             $attendance = Attendance::updateOrCreate(
                 ['user_id' => $user->id, 'date' => $today],
                 [
-                    'office_id' => $office?->id,
+                    'workplace_id' => $workplace?->id,
                     'clock_in_at' => $serverNow,
                     'clock_in_lat' => $lat,
                     'clock_in_lng' => $lng,
@@ -109,7 +109,7 @@ class AttendanceService
                 'metadata' => array_merge([
                     'gps_accuracy' => $gpsAccuracy,
                     'gps_speed' => $gpsSpeed,
-                    'distance_to_office_meters' => $distanceToOffice,
+                    'distance_to_workplace_meters' => $distanceToWorkplace,
                     'server_timestamp' => $serverNow->toIso8601String(),
                     'spoofing_indicators' => $spoofingIndicators,
                 ], $this->buildFingerprint($request)),
@@ -120,7 +120,7 @@ class AttendanceService
 
         $message = $withinGeofence
             ? 'Clock in successful. Awaiting HR verification.'
-            : 'Clock in recorded but you are outside the office geofence. This will be flagged for HR review.';
+            : 'Clock in recorded but you are outside the workplace geofence. This will be flagged for HR review.';
 
         if (! empty($spoofingIndicators)) {
             $message .= ' ⚠️ GPS anomaly detected.';
@@ -166,15 +166,15 @@ class AttendanceService
             ];
         }
 
-        $office = $attendance->office;
+        $workplace = $attendance->workplace;
 
         // Validate geofence
         $withinGeofence = false;
-        $distanceToOffice = null;
+        $distanceToWorkplace = null;
 
-        if ($office) {
-            $withinGeofence = $this->geoService->isWithinOffice($lat, $lng, $office);
-            $distanceToOffice = $this->geoService->distanceToOffice($lat, $lng, $office);
+        if ($workplace) {
+            $withinGeofence = $this->geoService->isWithinWorkplace($lat, $lng, $workplace);
+            $distanceToWorkplace = $this->geoService->distanceToWorkplace($lat, $lng, $workplace);
         }
 
         // Detect GPS spoofing
@@ -187,8 +187,8 @@ class AttendanceService
 
         // Check if early leave
         $isEarlyLeave = false;
-        if ($office) {
-            $workEnd = Carbon::parse($office->work_end);
+        if ($workplace) {
+            $workEnd = Carbon::parse($workplace->work_end);
             $isEarlyLeave = $serverNow->format('H:i:s') < $workEnd->format('H:i:s');
         }
 
@@ -199,7 +199,7 @@ class AttendanceService
         DB::transaction(function () use (
             $attendance, $lat, $lng, $request, $withinGeofence,
             $method, $serverNow, $isEarlyLeave, $workedHours,
-            $spoofingIndicators, $gpsAccuracy, $gpsSpeed, $distanceToOffice
+            $spoofingIndicators, $gpsAccuracy, $gpsSpeed, $distanceToWorkplace
         ) {
             $attendance->update([
                 'clock_out_at' => $serverNow,
@@ -228,7 +228,7 @@ class AttendanceService
                 'metadata' => array_merge([
                     'gps_accuracy' => $gpsAccuracy,
                     'gps_speed' => $gpsSpeed,
-                    'distance_to_office_meters' => $distanceToOffice,
+                    'distance_to_workplace_meters' => $distanceToWorkplace,
                     'server_timestamp' => $serverNow->toIso8601String(),
                     'spoofing_indicators' => $spoofingIndicators,
                 ], $this->buildFingerprint($request)),
@@ -240,7 +240,7 @@ class AttendanceService
         $message = 'Clock out successful. Awaiting HR verification.';
 
         if (! $withinGeofence) {
-            $message = 'Clock out recorded but you are outside the office geofence. Flagged for HR review.';
+            $message = 'Clock out recorded but you are outside the workplace geofence. Flagged for HR review.';
         }
 
         return [
@@ -298,16 +298,16 @@ class AttendanceService
         return $this->geoService->detectGpsSpoofing($recentLogs, $lat, $lng);
     }
 
-    private function findNearestOffice(float $lat, float $lng): ?Office
+    private function findNearestWorkplace(float $lat, float $lng): ?Workplace
     {
-        $offices = Office::all();
+        $workplaces = Workplace::all();
 
-        if ($offices->isEmpty()) {
+        if ($workplaces->isEmpty()) {
             return null;
         }
 
-        return $offices->sortBy(function ($office) use ($lat, $lng) {
-            return $this->geoService->distanceInMeters($lat, $lng, $office->latitude, $office->longitude);
+        return $workplaces->sortBy(function ($workplace) use ($lat, $lng) {
+            return $this->geoService->distanceInMeters($lat, $lng, $workplace->latitude, $workplace->longitude);
         })->first();
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Hrd\Resources\Roles;
 
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use App\Filament\Hrd\Resources\Roles\Pages\CreateRole;
 use App\Filament\Hrd\Resources\Roles\Pages\EditRole;
 use App\Filament\Hrd\Resources\Roles\Pages\ListRoles;
 use App\Filament\Hrd\Resources\Roles\Pages\ViewRole;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use BezhanSalleh\FilamentShield\Traits\HasShieldFormComponents;
 use BezhanSalleh\PluginEssentials\Concerns\Resource as Essentials;

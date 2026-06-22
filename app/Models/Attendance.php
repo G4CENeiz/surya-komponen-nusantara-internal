@@ -19,7 +19,7 @@ class Attendance extends Model
      */
     protected $fillable = [
         'user_id',
-        'office_id',
+        'workplace_id',
         'date',
         'clock_in_at',
         'clock_in_lat',
@@ -44,8 +44,6 @@ class Attendance extends Model
         'worked_hours',
         'is_late',
         'is_early_leave',
-        'is_suspicious',
-        'suspicious_reason',
     ];
 
     /**
@@ -65,7 +63,6 @@ class Attendance extends Model
             'verified_at' => 'datetime',
             'is_late' => 'boolean',
             'is_early_leave' => 'boolean',
-            'is_suspicious' => 'boolean',
         ];
     }
 
@@ -74,9 +71,9 @@ class Attendance extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function office(): BelongsTo
+    public function workplace(): BelongsTo
     {
-        return $this->belongsTo(Office::class);
+        return $this->belongsTo(Workplace::class);
     }
 
     public function verifier(): BelongsTo
@@ -112,13 +109,5 @@ class Attendance extends Model
     {
         return $query->where('clock_in_within_geofence', false)
             ->orWhere('clock_out_within_geofence', false);
-    }
-
-    /**
-     * Scope to get suspicious attendance records.
-     */
-    public function scopeSuspicious($query)
-    {
-        return $query->where('is_suspicious', true);
     }
 }

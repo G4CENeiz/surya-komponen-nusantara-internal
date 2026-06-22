@@ -4,8 +4,12 @@ namespace App\Filament\Hrd\Resources;
 
 use App\Filament\Hrd\Resources\AssignmentResource\Pages;
 use App\Models\Assignment;
+use App\Models\Department;
+use App\Models\Employee;
 use BackedEnum;
+use Filament\Actions;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -19,41 +23,55 @@ class AssignmentResource extends Resource
 {
     protected static ?string $model = Assignment::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Penugasan';
+    protected static string|UnitEnum|null $navigationGroup = 'Communications';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Komunikasi';
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $navigationLabel = 'Assignments';
+
+    protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->label('Pegawai')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
                 TextInput::make('title')
-                    ->label('Judul Tugas')
+                    ->label('Title')
                     ->required()
                     ->maxLength(255),
-                Textarea::make('description')
-                    ->label('Deskripsi')
-                    ->rows(4)
+                RichEditor::make('description')
+                    ->label('Description & Instructions')
+                    ->required()
                     ->columnSpanFull(),
-                DatePicker::make('due_date')
-                    ->label('Batas Waktu'),
-                Select::make('status')
-                    ->label('Status')
-                    ->options([
-                        'pending' => 'Menunggu',
-                        'in_progress' => 'Sedang Dikerjakan',
-                        'completed' => 'Selesai',
-                    ])
-                    ->default('pending')
+                Select::make('department_filter')
+                    ->label('Filter by Department')
+                    ->options(fn () => Department::pluck('name', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(fn ($state, $set) => $set('assigned_to', null))
+                    ->dehydrated(false),
+                Select::make('assigned_to')
+                    ->label('Assigned To')
+                    ->options(fn (callable $get) => Employee::query()
+                        ->with('user')
+                        ->when($get('department_filter'), fn ($query, $deptId) => $query->where('department_id', $deptId))
+                        ->get()
+                        ->mapWithKeys(fn ($emp) => [$emp->user_id => $emp->full_name.' ('.$emp->nik.')']))
+                    ->searchable()
                     ->required(),
+                DatePicker::make('start_date')
+                    ->label('Start Date')
+                    ->required(),
+                DatePicker::make('end_date')
+                    ->label('End Date')
+                    ->required(),
+                Textarea::make('notes')
+                    ->label('Notes')
+                    ->rows(3)
+                    ->placeholder('Additional notes or comments...'),
             ]);
     }
 
@@ -61,48 +79,44 @@ class AssignmentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Pegawai')
-                    ->searchable()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Tugas')
+                    ->label('Title')
                     ->searchable()
-                    ->limit(40),
-                Tables\Columns\TextColumn::make('due_date')
-                    ->label('Deadline')
-                    ->date('d M Y')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Menunggu',
-                        'in_progress' => 'Sedang Dikerjakan',
-                        'completed' => 'Selesai',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'in_progress' => 'info',
-                        'completed' => 'success',
-                        default => 'gray',
-                    }),
+                Tables\Columns\TextColumn::make('assignee.name')
+                    ->label('Assigned To')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('creator.name')
+                    ->label('Created By')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('start_date')
+                    ->label('Start Date')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('end_date')
+                    ->label('End Date')
+                    ->date()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime('d M Y')
+                    ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->filters([])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array
