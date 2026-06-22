@@ -1,5 +1,5 @@
 @php
-    $currentPanel = \Filament\Facades\Filament::getCurrentPanel()?->getId() ?? 'employee';
+    $currentPanel = filament()->getCurrentPanel()?->getId();
 @endphp
 
 <div class="mt-6">

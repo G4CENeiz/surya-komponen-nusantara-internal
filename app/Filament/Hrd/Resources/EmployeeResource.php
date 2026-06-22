@@ -3,6 +3,7 @@
 namespace App\Filament\Hrd\Resources;
 
 use App\Filament\Hrd\Resources\EmployeeResource\Pages;
+use App\Models\Department;
 use App\Models\Employee;
 use BackedEnum;
 use Filament\Actions;
@@ -11,6 +12,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Wizard;
@@ -107,7 +109,8 @@ class EmployeeResource extends Resource
                                         ->label('Department')
                                         ->searchable()
                                         ->preload()
-                                        ->required(),
+                                        ->required()
+                                        ->live(),
                                     Select::make('job_class_id')
                                         ->relationship('jobClass', 'name')
                                         ->label('Job Class')
@@ -117,8 +120,8 @@ class EmployeeResource extends Resource
                                 ]),
                             Grid::make(3)
                                 ->schema([
-                                    Select::make('work_location_id')
-                                        ->relationship('workLocation', 'name')
+                                    Select::make('workplace_id')
+                                        ->relationship('workplace', 'name')
                                         ->searchable()
                                         ->preload()
                                         ->required(),
@@ -126,6 +129,52 @@ class EmployeeResource extends Resource
                                         ->required(),
                                     DatePicker::make('termination_date'),
                                 ]),
+
+                            // ── Shift Section (Production/Warehouse/Operations only) ──
+                            Grid::make(3)
+                                ->schema([
+                                    Select::make('shift_name')
+                                        ->label('Shift')
+                                        ->options([
+                                            'Shift 1' => 'Shift 1 (08:00 – 16:00)',
+                                            'Shift 2' => 'Shift 2 (20:00 – 04:00)',
+                                        ])
+                                        ->live()
+                                        ->afterStateUpdated(function ($state, $set): void {
+                                            if ($state === 'Shift 1') {
+                                                $set('shift_start_time', '08:00');
+                                                $set('shift_end_time', '16:00');
+                                            } elseif ($state === 'Shift 2') {
+                                                $set('shift_start_time', '20:00');
+                                                $set('shift_end_time', '04:00');
+                                            } else {
+                                                $set('shift_start_time', null);
+                                                $set('shift_end_time', null);
+                                            }
+                                        })
+                                        ->visible(fn (callable $get): bool => in_array(
+                                            Department::find($get('department_id'))?->name ?? '',
+                                            ['Produksi', 'Gudang', 'Operasional'],
+                                        ))
+                                        ->placeholder('Select shift'),
+                                    TimePicker::make('shift_start_time')
+                                        ->label('Shift Start')
+                                        ->readOnly()
+                                        ->seconds(false)
+                                        ->visible(fn (callable $get): bool => in_array(
+                                            Department::find($get('department_id'))?->name ?? '',
+                                            ['Produksi', 'Gudang', 'Operasional'],
+                                        )),
+                                    TimePicker::make('shift_end_time')
+                                        ->label('Shift End')
+                                        ->readOnly()
+                                        ->seconds(false)
+                                        ->visible(fn (callable $get): bool => in_array(
+                                            Department::find($get('department_id'))?->name ?? '',
+                                            ['Produksi', 'Gudang', 'Operasional'],
+                                        )),
+                                ])
+                                ->columns(3),
                         ]),
 
                     Step::make('Work Location')
@@ -180,7 +229,8 @@ class EmployeeResource extends Resource
                 Tables\Columns\TextColumn::make('jobClass.name')
                     ->label('Job Class')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('workLocation.name')
+                Tables\Columns\TextColumn::make('workplace.name')
+                    ->label('Work Location')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')

@@ -17,8 +17,6 @@ class Workplace extends Model
         'latitude',
         'longitude',
         'radius_meters',
-        'work_start',
-        'work_end',
         'is_active',
     ];
 

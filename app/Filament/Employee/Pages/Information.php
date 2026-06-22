@@ -2,95 +2,139 @@
 
 namespace App\Filament\Employee\Pages;
 
-use Filament\Actions\Action;
 use Filament\Pages\Page;
 
 class Information extends Page
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-megaphone';
 
     protected static ?string $navigationLabel = 'Informasi';
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $title = 'Pusat Informasi';
+
+    protected static string $routePath = '/';
 
     protected string $view = 'filament.employee.pages.information';
 
     public array $pengumumanList = [];
-
     public array $penugasanList = [];
 
     public function mount()
     {
-        // Dummy data for Pengumuman (Announcements)
-        $this->pengumumanList = [
-            [
-                'id' => 1,
-                'title' => 'Pembaruan Kebijakan Cuti Tahunan',
-                'date' => '2026-06-20',
-                'priority' => 'Penting',
-                'content' => 'Mulai tanggal 1 Juli 2026, pengajuan cuti tahunan harus dilakukan minimal 7 hari kerja sebelum tanggal pelaksanaan. Ketentuan ini berlaku untuk seluruh divisi pabrik maupun kantor. Kebijakan ini diambil untuk memastikan bahwa operasional perusahaan tetap berjalan lancar dan pengaturan jadwal pengganti dapat dilakukan dengan lebih matang. Selain itu, karyawan diwajibkan untuk memastikan bahwa seluruh tanggung jawab mendesak telah diserahterimakan kepada rekan kerja satu divisi sebelum mulai mengambil cuti. HRD akan menolak pengajuan cuti yang mendadak tanpa alasan darurat medis atau kedukaan.',
-            ],
-            [
-                'id' => 2,
-                'title' => 'Jadwal Pemeliharaan Sistem HRIS',
-                'date' => '2026-06-18',
-                'priority' => 'Informasi',
-                'content' => 'Akan dilakukan pemeliharaan sistem HRIS pada hari Minggu, 28 Juni 2026 pukul 00:00 - 04:00 WIB. Sistem absensi tidak akan terganggu, namun menu pengajuan akan dinonaktifkan sementara.',
-            ],
-            [
-                'id' => 3,
-                'title' => 'Vaksinasi Influenza Tahunan',
-                'date' => '2026-06-15',
-                'priority' => 'Informasi',
-                'content' => 'Pendaftaran vaksinasi influenza gratis bagi karyawan tetap dibuka mulai hari ini. Silakan mendaftar melalui klinik perusahaan paling lambat 30 Juni 2026.',
-            ],
-        ];
+        $userId = auth()->id();
 
-        // Dummy data for Penugasan (Tugas Luar)
-        $this->penugasanList = [
-            [
-                'id' => 'TL-001',
-                'title' => 'Kunjungan Klien VIP',
-                'location' => 'Jakarta Selatan',
-                'start_date' => '2026-06-25',
-                'end_date' => '2026-06-27',
-                'desc' => 'Presentasi produk terbaru dan negosiasi perpanjangan kontrak dengan PT Maju Jaya.',
-                'status' => 'Belum Mulai',
-            ],
-            [
-                'id' => 'TL-002',
-                'title' => 'Audit Pabrik Cabang',
-                'location' => 'Surabaya, Jawa Timur',
-                'start_date' => '2026-06-15',
-                'end_date' => '2026-06-18',
-                'desc' => 'Melakukan inspeksi kualitas produksi dan audit kepatuhan K3 di fasilitas pabrik Surabaya.',
-                'status' => 'Selesai',
-            ],
-            [
-                'id' => 'TL-003',
-                'title' => 'Pameran Otomotif Nasional',
-                'location' => 'ICE BSD, Tangerang',
-                'start_date' => '2026-06-20',
-                'end_date' => '2026-06-24',
-                'desc' => 'Menjaga booth pameran perusahaan, mendemonstrasikan komponen elektronik, dan mencari calon mitra bisnis baru.',
-                'status' => 'Dalam Pengerjaan',
-            ],
-        ];
+        // Mengambil data Pengumuman dari Database
+        $this->pengumumanList = \App\Models\Announcement::active()
+            ->published()
+            ->latest('published_at')
+            ->get()
+            ->map(function ($ann) {
+                return [
+                    'id' => $ann->id,
+                    'title' => $ann->title,
+                    'date' => $ann->published_at,
+                    'priority' => $ann->type ?? 'Informasi',
+                    'content' => $ann->content,
+                    'attachment_path' => $ann->attachment_path,
+                ];
+            })->toArray();
 
-        // Urutkan Penugasan dari yang paling baru ke paling lama berdasarkan start_date
-        usort($this->penugasanList, function ($a, $b) {
-            return strtotime($b['start_date']) - strtotime($a['start_date']);
-        });
+        // Mengambil data Penugasan dari Database
+        $this->penugasanList = \App\Models\Assignment::where('assigned_to', $userId)
+            ->where('is_active', true)
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(function ($task) use ($userId) {
+                $now = now();
+                $status = 'Belum Mulai';
+                if ($task->start_date && $task->end_date) {
+                    if ($now->between($task->start_date, $task->end_date)) {
+                        $status = 'Dalam Pengerjaan';
+                    } elseif ($now->isAfter($task->end_date)) {
+                        $status = 'Selesai';
+                    }
+                }
+
+                $reimburse = \App\Models\Reimbursement::where('assignment_id', $task->id)
+                    ->where('user_id', $userId)
+                    ->first();
+
+                return [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'location' => $task->notes ?? 'Kantor Pusat',
+                    'start_date' => $task->start_date,
+                    'end_date' => $task->end_date,
+                    'desc' => $task->description,
+                    'status' => $status,
+                    'reimburse_status' => $reimburse ? $reimburse->status : null,
+                    'reimburse_reason' => $reimburse ? $reimburse->rejection_reason : null,
+                ];
+            })->toArray();
     }
 
-    public function viewPengumumanAction(): Action
+    public function viewPengumumanAction(): \Filament\Actions\Action
     {
-        return Action::make('viewPengumuman')
+        return \Filament\Actions\Action::make('viewPengumuman')
             ->modalHeading(fn (array $arguments) => collect($this->pengumumanList)->firstWhere('id', $arguments['id'])['title'] ?? 'Pengumuman')
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Tutup')
             ->modalContent(fn (array $arguments) => view('filament.employee.partials.information-modal', [
-                'pengumuman' => collect($this->pengumumanList)->firstWhere('id', $arguments['id']),
+                'pengumuman' => collect($this->pengumumanList)->firstWhere('id', $arguments['id'])
             ]));
+    }
+
+    public function requestReimburseAction(): \Filament\Actions\Action
+    {
+        return \Filament\Actions\Action::make('requestReimburse')
+            ->label('Reimburse')
+            ->modalHeading('Form Reimbursement')
+            ->modalDescription('Silakan unggah bukti kuitansi dan masukkan nominal reimbursement untuk tugas ini.')
+            ->form([
+                \Filament\Forms\Components\TextInput::make('amount')
+                    ->label('Nominal Reimburse (Rp)')
+                    ->numeric()
+                    ->required()
+                    ->minValue(100),
+                \Filament\Forms\Components\Textarea::make('notes')
+                    ->label('Keterangan / Tujuan')
+                    ->required()
+                    ->maxLength(500),
+                \Filament\Forms\Components\FileUpload::make('attachment')
+                    ->label('Bukti Kuitansi (PDF Wajib)')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->required()
+                    ->maxSize(5120)
+                    ->storeFiles(false)
+                    ->helperText('Maks 5MB. Hanya format PDF.'),
+            ])
+            ->action(function (array $data, array $arguments) {
+                $reimbursement = \App\Models\Reimbursement::create([
+                    'user_id' => auth()->id(),
+                    'assignment_id' => $arguments['id'],
+                    'amount' => $data['amount'],
+                    'notes' => $data['notes'],
+                    'attachment_path' => 'spatie', // filler for NOT NULL constraint
+                    'status' => 'pending',
+                ]);
+
+                if (!empty($data['attachment'])) {
+                    $file = is_array($data['attachment']) ? current($data['attachment']) : $data['attachment'];
+                    $reimbursement->addMedia($file->getRealPath())
+                                  ->usingName($file->getClientOriginalName())
+                                  ->usingFileName($file->getClientOriginalName())
+                                  ->toMediaCollection('kuitansi');
+                }
+
+                \Filament\Notifications\Notification::make()
+                    ->title('Reimbursement Diajukan')
+                    ->body('Permintaan reimburse Anda telah dikirim ke Accounting untuk ditinjau.')
+                    ->success()
+                    ->send();
+
+                // Refresh data
+                $this->mount();
+            });
     }
 }

@@ -3,53 +3,70 @@
 namespace App\Filament\Hrd\Widgets;
 
 use App\Models\Attendance;
-use App\Models\User;
+use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Carbon;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 class AttendanceTrendChart extends ChartWidget
 {
-    protected ?string $heading = 'Tren Kehadiran (7 Hari Terakhir)';
+    use InteractsWithPageFilters;
 
-    protected static ?int $sort = 1;
+    protected ?string $heading = 'Attendance Trend';
+
+    protected static ?int $sort = 4;
+
+    protected ?string $maxHeight = '300px';
+
+    protected int|string|array $columnSpan = 'half';
 
     protected function getData(): array
     {
-        $labels = [];
-        $present = [];
-        $late = [];
-        $absent = [];
+        $dateFrom = $this->pageFilters['dateFrom'] ?? null;
+        $dateTo = $this->pageFilters['dateTo'] ?? null;
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            $labels[] = $date->format('d M');
+        $start = $dateFrom ? Carbon::parse($dateFrom) : now()->subDays(13);
+        $end = $dateTo ? Carbon::parse($dateTo) : now();
 
-            $dayAttendances = Attendance::whereDate('date', $date->toDateString())->get();
-
-            $present[] = $dayAttendances->whereNotNull('clock_in_at')->where('is_late', false)->count();
-            $late[] = $dayAttendances->where('is_late', true)->count();
-            $absent[] = max(0, User::whereHas('roles', fn ($q) => $q->where('name', 'employee'))->count() - $dayAttendances->count());
+        $days = collect();
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $days->push($date->copy()->toDateString());
         }
+
+        $approvedCounts = Attendance::where('status', 'approved')
+            ->whereIn('date', $days)
+            ->selectRaw('date, count(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date');
+
+        $rejectedCounts = Attendance::where('status', 'rejected')
+            ->whereIn('date', $days)
+            ->selectRaw('date, count(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date');
+
+        $labels = $days->map(fn ($d) => Carbon::parse($d)->format('M d'))->toArray();
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Tepat Waktu',
-                    'data' => $present,
-                    'backgroundColor' => '#22c55e',
+                    'label' => 'Approved',
+                    'data' => $days->map(fn ($d) => $approvedCounts->get($d, 0))->toArray(),
                     'borderColor' => '#22c55e',
+                    'backgroundColor' => 'rgba(34, 197, 94, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.4,
+                    'pointRadius' => 3,
+                    'pointHoverRadius' => 6,
                 ],
                 [
-                    'label' => 'Terlambat',
-                    'data' => $late,
-                    'backgroundColor' => '#f59e0b',
-                    'borderColor' => '#f59e0b',
-                ],
-                [
-                    'label' => 'Tidak Hadir',
-                    'data' => $absent,
-                    'backgroundColor' => '#ef4444',
+                    'label' => 'Rejected',
+                    'data' => $days->map(fn ($d) => $rejectedCounts->get($d, 0))->toArray(),
                     'borderColor' => '#ef4444',
+                    'backgroundColor' => 'rgba(239, 68, 68, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.4,
+                    'pointRadius' => 3,
+                    'pointHoverRadius' => 6,
                 ],
             ],
             'labels' => $labels,
@@ -58,6 +75,6 @@ class AttendanceTrendChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'bar';
+        return 'line';
     }
 }

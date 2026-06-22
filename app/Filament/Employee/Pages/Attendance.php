@@ -18,6 +18,7 @@ class Attendance extends Page
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
 
     protected static ?string $navigationLabel = 'Clock In / Out';
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $title = 'Attendance';
 
@@ -67,7 +68,7 @@ class Attendance extends Page
         $todayHtml .= '</div>';
 
         // Stats grid
-        $todayHtml .= '<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; width: 100%; text-align: center;">';
+        $todayHtml .= '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 w-full text-center">';
 
         $items = [
             ['label' => 'Clock In', 'value' => $clockIn, 'badge' => $isLate ? $this->badge('Late', 'danger', true) : ''],
@@ -94,11 +95,11 @@ class Attendance extends Page
         $clockInDisabled = $this->canClockIn ? '' : 'opacity: 0.5; cursor: not-allowed;';
         $clockOutDisabled = $this->canClockOut ? '' : 'opacity: 0.5; cursor: not-allowed;';
 
-        $todayHtml .= '<div style="display: flex; justify-content: center; gap: 1rem; width: 100%;">';
-        $todayHtml .= '<button wire:click="mountAction(\'clock-in\')" style="'.$clockInDisabled.'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: white; background-color: #22c55e; transition: background-color 0.15s;">';
+        $todayHtml .= '<div class="flex flex-col sm:flex-row justify-center gap-4 w-full px-4 sm:px-0">';
+        $todayHtml .= '<button wire:click="mountAction(\'clock-in\')" style="'.$clockInDisabled.'" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium text-white bg-green-500 hover:bg-green-600 transition-colors w-full sm:w-auto">';
         $todayHtml .= '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>';
         $todayHtml .= 'Clock In</button>';
-        $todayHtml .= '<button wire:click="mountAction(\'clock-out\')" style="'.$clockOutDisabled.'display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: white; background-color: #ef4444; transition: background-color 0.15s;">';
+        $todayHtml .= '<button wire:click="mountAction(\'clock-out\')" style="'.$clockOutDisabled.'" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors w-full sm:w-auto">';
         $todayHtml .= '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0110.5 3h6a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0116.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3 0l-3-3m0 0l3-3m-3 3H9" /></svg>';
         $todayHtml .= 'Clock Out</button>';
         $todayHtml .= '</div>';

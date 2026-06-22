@@ -17,7 +17,6 @@ class JobClass extends Model
         'min_salary',
         'max_salary',
         'base_allowance',
-        'other_allowances',
         'description',
     ];
 
@@ -28,7 +27,7 @@ class JobClass extends Model
             'min_salary' => 'decimal:2',
             'max_salary' => 'decimal:2',
             'base_allowance' => 'decimal:2',
-            'other_allowances' => 'decimal:2',
+
         ];
     }
 
