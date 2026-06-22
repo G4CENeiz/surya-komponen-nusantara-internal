@@ -3,9 +3,11 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Hrd\Pages\HrdDashboard;
+use App\Filament\Hrd\Widgets\AttendanceTrendChart;
 use App\Filament\Hrd\Widgets\EmployeeDistributionChart;
 use App\Filament\Hrd\Widgets\HrdOverview;
 use App\Filament\Hrd\Widgets\LatestEmployeesWidget;
+use App\Filament\Hrd\Widgets\PendingSubmissionsWidget;
 use App\Filament\Hrd\Widgets\RecentAnnouncementsWidget;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -31,7 +33,7 @@ class HrdPanelProvider extends PanelProvider
             ->id('hrd')
             ->path('hrd')
             ->login()
-            ->brandName('HRIS — HRD Panel')
+            ->brandName('SKN — HRD Panel')
             ->favicon(asset('favicon.ico'))
             ->darkMode()
             ->colors([
@@ -46,7 +48,9 @@ class HrdPanelProvider extends PanelProvider
             ->widgets([
                 HrdOverview::class,
                 EmployeeDistributionChart::class,
+                AttendanceTrendChart::class,
                 LatestEmployeesWidget::class,
+                PendingSubmissionsWidget::class,
                 RecentAnnouncementsWidget::class,
             ])
             ->middleware([
