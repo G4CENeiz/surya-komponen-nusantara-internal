@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Employee extends Model
 {
@@ -24,7 +25,7 @@ class Employee extends Model
         'office_email',
         'department_id',
         'job_class_id',
-        'work_location_id',
+        'workplace_id',
         'hire_date',
         'termination_date',
         'status',
@@ -59,9 +60,9 @@ class Employee extends Model
         return $this->belongsTo(JobClass::class);
     }
 
-    public function workLocation(): BelongsTo
+    public function workplace(): BelongsTo
     {
-        return $this->belongsTo(WorkLocation::class);
+        return $this->belongsTo(Workplace::class);
     }
 
     public function submissions(): HasMany
@@ -69,9 +70,9 @@ class Employee extends Model
         return $this->hasMany(Submission::class);
     }
 
-    public function attendances(): HasMany
+    public function attendances(): HasManyThrough
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasManyThrough(Attendance::class, User::class);
     }
 
     public function announcements(): BelongsToMany

@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             DepartmentSeeder::class,
             JobClassSeeder::class,
-            WorkLocationSeeder::class,
+            WorkplaceSeeder::class,
         ]);
 
         // Create HR user

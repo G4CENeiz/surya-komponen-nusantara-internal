@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\User;
-use App\Models\WorkLocation;
+use App\Models\Workplace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -52,7 +52,7 @@ class EmployeeFactory extends Factory
             'office_email' => $faker->safeEmail(),
             'department_id' => Department::where('name', $departmentName)->first()->id ?? Department::factory(),
             'job_class_id' => $faker->numberBetween(1, 5),
-            'work_location_id' => WorkLocation::inRandomOrder()->first()->id ?? WorkLocation::factory(),
+            'workplace_id' => Workplace::inRandomOrder()->first()->id ?? Workplace::factory(),
             'hire_date' => $faker->dateTimeBetween('-5 years', 'now'),
             'termination_date' => $status === 'inactive' ? $faker->dateTimeBetween('-1 year', 'now') : null,
             'status' => $status,

@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Attendance;
-use App\Models\Employee;
 use App\Models\User;
+use App\Models\Workplace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -12,53 +12,38 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AttendanceFactory extends Factory
 {
+    /**
+     * Define the model's default state.
+     */
     public function definition(): array
     {
         return [
-            'employee_id' => Employee::factory(),
-            'date' => fake()->dateTimeBetween('-1 month', 'now'),
-            'clock_in' => fake()->time('08:00', '09:30'),
-            'clock_out' => fake()->optional(0.8)->time('17:00', '18:30'),
-            'status' => 'present',
-            'clock_in_lat' => fake()->latitude(-6.3, -6.1),
-            'clock_in_lng' => fake()->longitude(106.7, 106.9),
-            'clock_out_lat' => null,
-            'clock_out_lng' => null,
-            'is_verified' => false,
-            'verified_by' => null,
-            'verified_at' => null,
-            'notes' => null,
-        ];
-    }
-
-    public function present(): static
-    {
-        return $this->state(fn () => [
-            'status' => 'present',
-            'clock_in' => fake()->time('07:30', '08:30'),
-            'clock_out' => fake()->time('17:00', '18:00'),
-            'clock_in_lat' => fake()->latitude(-6.3, -6.1),
-            'clock_in_lng' => fake()->longitude(106.7, 106.9),
-            'clock_out_lat' => fake()->latitude(-6.3, -6.1),
-            'clock_out_lng' => fake()->longitude(106.7, 106.9),
-        ]);
-    }
-
-    public function absent(): static
-    {
-        return $this->state(fn () => [
-            'status' => 'absent',
-            'clock_in' => null,
-            'clock_out' => null,
-        ]);
-    }
-
-    public function verified(): static
-    {
-        return $this->state(fn () => [
-            'is_verified' => true,
+            'user_id' => User::factory(),
+            'workplace_id' => Workplace::factory(),
+            'date' => fake()->date(),
+            'clock_in_at' => fake()->dateTime(),
+            'clock_in_lat' => fake()->randomFloat(7, 0, 999.9999999),
+            'clock_in_lng' => fake()->randomFloat(7, 0, 999.9999999),
+            'clock_in_ip' => fake()->word(),
+            'clock_in_photo_path' => fake()->word(),
+            'clock_in_face_confidence' => fake()->randomFloat(4, 0, 9.9999),
+            'clock_in_within_geofence' => fake()->boolean(),
+            'clock_in_method' => fake()->word(),
+            'clock_out_at' => fake()->dateTime(),
+            'clock_out_lat' => fake()->randomFloat(7, 0, 999.9999999),
+            'clock_out_lng' => fake()->randomFloat(7, 0, 999.9999999),
+            'clock_out_ip' => fake()->word(),
+            'clock_out_photo_path' => fake()->word(),
+            'clock_out_face_confidence' => fake()->randomFloat(4, 0, 9.9999),
+            'clock_out_within_geofence' => fake()->boolean(),
+            'clock_out_method' => fake()->word(),
+            'status' => fake()->word(),
+            'hr_notes' => fake()->text(),
             'verified_by' => User::factory(),
-            'verified_at' => fake()->dateTimeBetween('-1 week', 'now'),
-        ]);
+            'verified_at' => fake()->dateTime(),
+            'worked_hours' => fake()->randomFloat(2, 0, 999.99),
+            'is_late' => fake()->boolean(),
+            'is_early_leave' => fake()->boolean(),
+        ];
     }
 }
