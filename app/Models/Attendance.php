@@ -44,6 +44,8 @@ class Attendance extends Model
         'worked_hours',
         'is_late',
         'is_early_leave',
+        'is_suspicious',
+        'suspicious_reason',
     ];
 
     /**
@@ -63,6 +65,7 @@ class Attendance extends Model
             'verified_at' => 'datetime',
             'is_late' => 'boolean',
             'is_early_leave' => 'boolean',
+            'is_suspicious' => 'boolean',
         ];
     }
 
@@ -109,5 +112,13 @@ class Attendance extends Model
     {
         return $query->where('clock_in_within_geofence', false)
             ->orWhere('clock_out_within_geofence', false);
+    }
+
+    /**
+     * Scope to get suspicious attendance records.
+     */
+    public function scopeSuspicious($query)
+    {
+        return $query->where('is_suspicious', true);
     }
 }

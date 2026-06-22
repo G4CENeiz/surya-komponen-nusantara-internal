@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'deepface' => [
+        'url' => env('DEEPFACE_URL', 'http://deepface:5000'),
+    ],
+
 ];
