@@ -34,12 +34,12 @@ class PayrollTestDataSeeder extends Seeder
                     // Random date in the month
                     $day = rand(1, 28);
                     Attendance::updateOrCreate(
-                        ['user_id' => $emp->user_id, 'date' => Carbon::createFromDate($year, $month, $day)],
+                        ['employee_id' => $emp->id, 'date' => Carbon::createFromDate($year, $month, $day)],
                         [
                             'clock_in_at' => Carbon::createFromDate($year, $month, $day)->setTime(rand(9, 10), rand(15, 59)),
                             'is_late' => true,
                             'status' => 'approved',
-                            'workplace_id' => 1
+                            'workplace_id' => 1,
                         ]
                     );
                 }

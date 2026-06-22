@@ -47,12 +47,12 @@ class HistoricalPayrollTestDataSeeder extends Seeder
                     for ($i = 1; $i <= $lateFreq; $i++) {
                         $day = rand(1, 28);
                         Attendance::updateOrCreate(
-                            ['user_id' => $emp->user_id, 'date' => Carbon::createFromDate($year, $month, $day)],
+                            ['employee_id' => $emp->id, 'date' => Carbon::createFromDate($year, $month, $day)],
                             [
                                 'clock_in_at' => Carbon::createFromDate($year, $month, $day)->setTime(rand(9, 10), rand(15, 59)),
                                 'is_late' => true,
                                 'status' => 'approved',
-                                'workplace_id' => 1
+                                'workplace_id' => 1,
                             ]
                         );
                     }

@@ -71,11 +71,94 @@ Peserta **bebas menetapkan asumsi** selama dituliskan di README. Acuan:
 Autentikasi & RBAC; geolokasi bila relevan; responsif/*mobile-friendly*; data tersimpan di basis data (bukan *hardcoded*); ter-*deploy* & dapat diakses publik; integritas/konsistensi status berjenjang & dapat dilacak.
 
 ### **L. Deliverables (Wajib)**
-1. **URL aplikasi ter-deploy** yang dapat diakses juri.
-2. **Repository** dengan *commit history* sepanjang 24 jam.
-3. **README:** cara menjalankan, teknologi, daftar asumsi, **akun demo tiap peran**.
-4. **Data dummy** memadai agar seluruh fitur (termasuk peta/dashboard/AI) dapat didemonstrasikan.
-5. **Presentasi/demo** singkat di hadapan juri.
+
+#### 1. URL Aplikasi Ter-Deploy
+| Panel | URL |
+| :--- | :--- |
+| **Pegawai (default)** | `https://<domain>/` |
+| **HRD** | `https://<domain>/hrd/login` |
+| **Keuangan** | `https://<domain>/accounting/login` |
+
+> *URL akan diupdate setelah deployment ke server publik.*
+
+#### 2. Repository
+- Repository GitHub: **G4CENeiz/surya-komponen-nusantara-internal**
+- *Commit history* tercatat sepanjang 24 jam pengerjaan.
+
+#### 3. Teknologi yang Digunakan
+| Komponen | Teknologi |
+| :--- | :--- |
+| **Backend** | PHP 8.3+, Laravel 13 |
+| **Frontend Admin Panel** | Filament v5 (3 panel: Employee, HRD, Accounting) |
+| **UI Styling** | Tailwind CSS v4, Livewire v4 |
+| **RBAC** | Spatie Permission + Filament Shield |
+| **Absensi & Face Recognition** | Face API.js / TensorFlow.js (client-side) + Geofencing |
+| **PDF Export** | Laravel DomPDF |
+| **Media Library** | Spatie Media Library |
+| **Database** | MySQL / SQLite |
+| **Testing** | Pest PHP v4, PHPUnit v12 |
+| **Build Tool** | Vite v8 + Bun |
+
+#### 4. Cara Menjalankan
+```bash
+# 1. Clone repository
+git clone https://github.com/G4CENeiz/surya-komponen-nusantara-internal.git
+cd surya-komponen-nusantara-internal
+
+# 2. Jalankan setup otomatis (install, migrate, seed, build)
+composer run setup
+
+# 3. Jalankan server development
+php artisan serve
+
+# 4. Buka browser
+# Pegawai  → http://localhost:8000
+# HRD      → http://localhost:8000/hrd/login
+# Keuangan → http://localhost:8000/accounting/login
+```
+
+#### 5. Akun Demo tiap Peran
+
+| Peran | Email | Password | URL Login |
+| :--- | :--- | :--- | :--- |
+| **Pegawai** | `employee@example.com` | `password` | `http://localhost:8000` |
+| **HRD** | `hr@example.com` | `password` | `http://localhost:8000/hrd/login` |
+| **Keuangan (Accounting)** | `accounting@example.com` | `password` | `http://localhost:8000/accounting/login` |
+
+> *Selain 3 akun demo utama, terdapat **1.200 data pegawai dummy** yang dibuat otomatis oleh seeder.*
+
+#### 6. Data Dummy
+Data dummy yang disediakan agar seluruh fitur dapat didemonstrasikan:
+
+| Data | Jumlah | Keterangan |
+| :--- | :--- | :--- |
+| **Pegawai** | 1.200 | Lengkap dengan NIK, nama, foto wajah referensi, departemen, kelas jabatan, lokasi kerja |
+| **Departemen** | 8+ | Produksi, HRD, Keuangan, IT, Marketing, dll. |
+| **Kelas Jabatan** | 6+ | Staff, Supervisor, Manager, GM, Direktur, dengan rentang gaji |
+| **Lokasi Kerja (Workplace)** | 3+ | Pabrik Utama, Kantor Pusat, Cabang — dilengkapi koordinat geofencing |
+| **Pengumuman** | 10+ | Beragam topik, beberapa dengan lampiran PDF |
+| **Penugasan** | 5+ | Tugas luar kota (Jakarta, Surabaya, Bandung, dll.) |
+| **Absensi & Log** | Terisi otomatis | Data presensi dengan koordinat, status hadir/terlambat/tugas luar |
+| **Pengajuan (Time Off, Lembur, Sakit)** | 20+ | Campuran status: pending, approved, rejected |
+| **Penggajian (Payroll Settings, Payslip)** | Per periode | Gaji pokok, honor lembur, potongan (BPJS, PPh 21, dll.) |
+| **Reimbursement** | 10+ | Berbagai jenis klaim pengeluaran |
+
+#### 7. Daftar Asumsi
+- **Honor lembur:** menggunakan rumus lazim Indonesia `upah/jam = 1/173 × gaji pokok bulanan`, dengan pengali 1,5× (hari biasa) dan 2× (hari libur).
+- **Radius geofencing:** 100 meter dari titik koordinat lokasi kerja.
+- **Ambang keterlambatan:** toleransi 15 menit dari jam masuk (08:00 WIB).
+- **Face recognition:** menggunakan `face-api.js` (TensorFlow.js) dengan *cosine similarity* ≥ 0.6 sebagai ambang batas kecocokan wajah.
+- **Potongan gaji:** BPJS Kesehatan (1% gaji + 4% employer), BPJS Ketenagakerjaan (JKK 0,24%, JKM 0,30%), PPh 21 menggunakan tarif progresif, potongan keterlambatan Rp 50.000/kejadian.
+- **Jam kerja standar:** 08:00–17:00 WIB (8 jam kerja, 1 jam istirahat).
+- **Status keterlambatan:** `Terlambat` jika clock-in setelah 08:15, `Tugas Luar` jika disetujui HRD, `Izin/Cuti` jika disetujui HRD.
+
+#### 8. Presentasi/Demo
+Presentasi singkat mencakup:
+1. Login sebagai 3 peran berbeda (Pegawai → HRD → Keuangan)
+2. Absensi dengan verifikasi lokasi + face recognition
+3. Pengajuan cuti/sakit/lembur → verifikasi HRD
+4. Perhitungan gaji otomatis → cetak slip gaji
+5. Dashboard HRD (grafik kehadiran) & Dashboard Keuangan (grafik beban gaji)
 
 ### **M. Ruang Lingkup (MVP vs Bonus)**
 * **Wajib (MVP)**
