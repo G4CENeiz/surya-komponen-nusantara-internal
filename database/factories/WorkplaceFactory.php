@@ -23,8 +23,6 @@ class WorkplaceFactory extends Factory
             'latitude' => fake()->latitude(-10, 10),
             'longitude' => fake()->longitude(100, 140),
             'radius_meters' => fake()->randomElement([50, 100, 150, 200]),
-            'work_start' => '08:00:00',
-            'work_end' => '17:00:00',
             'is_active' => true,
         ];
     }

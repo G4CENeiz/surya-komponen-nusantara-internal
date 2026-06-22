@@ -25,7 +25,7 @@ class JobClassFactory extends Factory
             'min_salary' => $minSalary,
             'max_salary' => $minSalary + fake()->numberBetween(2000000, 5000000),
             'base_allowance' => fake()->numberBetween(500000, 2000000),
-            'other_allowances' => fake()->numberBetween(0, 1000000),
+
             'description' => fake()->sentence(),
         ];
     }
