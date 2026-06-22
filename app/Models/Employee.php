@@ -60,6 +60,11 @@ class Employee extends Model
         return $this->belongsTo(JobClass::class);
     }
 
+    public function payslips(): HasMany
+    {
+        return $this->hasMany(Payslip::class);
+    }
+
     public function workplace(): BelongsTo
     {
         return $this->belongsTo(Workplace::class);

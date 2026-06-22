@@ -12,17 +12,33 @@ class Payroll extends Page implements HasForms
 
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-currency-dollar';
     protected static ?string $navigationLabel = 'Payroll';
+    protected static ?int $navigationSort = 5;
     protected static ?string $title = 'Kelola Penggajian';
-    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.accounting.pages.payroll';
 
     public array $payrollData = [];
+    public $searchQuery = '';
+    public $filterDept = '';
+    public $filterClass = '';
+    public $payrollHistory = [];
+    public $currentPage = 1;
+
+    public $isViewingHistory = false;
+    public $historyMonth = null;
+    public $historyYear = null;
+    
+    public $employeeHistoryModalOpen = false;
+    public $employeeHistoryDetails = [];
+
     public $isEditing = false;
     public $editingIndex = null;
     public $editName = '';
     public ?array $filterData = [];
     public $editBasic = 0;
+    
+    // Pagination
+    public $perPage = 10;
     public $editOvertime = 0;
     public $editDedBpjsKesehatan = 0;
     public $editDedBpjsKetenagakerjaan = 0;
@@ -31,40 +47,369 @@ class Payroll extends Page implements HasForms
     public $editDedLoan = 0;
     public $editDeductions = 0;
     public $editThp = 0;
+    public $editReimburse = 0;
+
+    public $editOvertimeHours = 0;
+    public $editLateFrequency = 0;
+    public $overtimeRate = 0;
+    public $latePenalty = 0;
+    public $bpjsKesRate = 0;
+    public $bpjsTkRate = 0;
+    public $editAllowance = 0;
 
     public function mount()
     {
-        $this->payrollData = [
-            ['nik' => 'EMP-001', 'name' => 'Budi Santoso', 'ptkp' => 'TK/0', 'basic' => 4000000, 'overtime' => 250000, 'deductions' => 120000, 'thp' => 4130000, 'status' => 'Draft', 'ded_bpjs_kes' => 40000, 'ded_bpjs_tk' => 80000, 'ded_pph' => 0, 'ded_late' => 0, 'ded_loan' => 0],
-            ['nik' => 'EMP-002', 'name' => 'Siti Aminah', 'ptkp' => 'K/1', 'basic' => 4500000, 'overtime' => 500000, 'deductions' => 135000, 'thp' => 4865000, 'status' => 'Draft', 'ded_bpjs_kes' => 45000, 'ded_bpjs_tk' => 90000, 'ded_pph' => 0, 'ded_late' => 0, 'ded_loan' => 0],
-            ['nik' => 'EMP-003', 'name' => 'Agus Pratama', 'ptkp' => 'TK/0', 'basic' => 4200000, 'overtime' => 0, 'deductions' => 176000, 'thp' => 4024000, 'status' => 'Published', 'ded_bpjs_kes' => 42000, 'ded_bpjs_tk' => 84000, 'ded_pph' => 0, 'ded_late' => 50000, 'ded_loan' => 0],
-            ['nik' => 'EMP-004', 'name' => 'Rina Wijaya', 'ptkp' => 'TK/0', 'basic' => 5000000, 'overtime' => 125000, 'deductions' => 150000, 'thp' => 4975000, 'status' => 'Draft', 'ded_bpjs_kes' => 50000, 'ded_bpjs_tk' => 100000, 'ded_pph' => 0, 'ded_late' => 0, 'ded_loan' => 0],
-            ['nik' => 'EMP-005', 'name' => 'Ahmad Fauzi', 'ptkp' => 'TK/0', 'basic' => 7000000, 'overtime' => 500000, 'deductions' => 0, 'thp' => 0, 'status' => 'Draft', 'ded_bpjs_kes' => 70000, 'ded_bpjs_tk' => 140000, 'ded_pph' => 0, 'ded_late' => 0, 'ded_loan' => 0],
-        ];
+        $overtimeSetting = \App\Models\PayrollSetting::where('key', 'overtime_rate')->first();
+        $this->overtimeRate = $overtimeSetting ? (int)$overtimeSetting->value : 0;
+        
+        $lateSetting = \App\Models\PayrollSetting::where('key', 'late_penalty')->first();
+        $this->latePenalty = $lateSetting ? (int)$lateSetting->value : 0;
 
-        $this->form->fill();
+        $bpjsKesSetting = \App\Models\PayrollSetting::where('key', 'bpjs_kes_percent')->first();
+        $this->bpjsKesRate = $bpjsKesSetting ? (float)$bpjsKesSetting->value : 0;
+
+        $bpjsTkSetting = \App\Models\PayrollSetting::where('key', 'bpjs_tk_percent')->first();
+        $this->bpjsTkRate = $bpjsTkSetting ? (float)$bpjsTkSetting->value : 0;
+
+        $this->loadData();
+    }
+
+    public function getCurrentPeriod()
+    {
+        $months = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
+        $month = $this->isViewingHistory ? $this->historyMonth : now()->month;
+        $year = $this->isViewingHistory ? $this->historyYear : now()->year;
+        return [
+            'month' => $month,
+            'year' => $year,
+            'text' => $months[$month] . ' ' . $year
+        ];
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('closeHistoryDetail')
+                ->label('Kembali')
+                ->color('gray')
+                ->icon('heroicon-o-arrow-left')
+                ->action('closeHistoryDetail')
+                ->visible(fn () => $this->isViewingHistory),
+            
+            \Filament\Actions\Action::make('exportExcel')
+                ->label('Ekspor Excel')
+                ->color('gray')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action('exportExcel'),
+                
+            \Filament\Actions\Action::make('generatePayroll')
+                ->label('Generate Payroll')
+                ->color('primary')
+                ->icon('heroicon-o-document-text')
+                ->action('generatePayroll'),
+        ];
+    }
+
+    public function viewHistoryDetail($month, $year)
+    {
+        $this->isViewingHistory = true;
+        $this->historyMonth = $month;
+        $this->historyYear = $year;
+        $this->currentPage = 1;
+        $this->loadData();
+    }
+
+    public function closeHistoryDetail()
+    {
+        $this->isViewingHistory = false;
+        $this->historyMonth = null;
+        $this->historyYear = null;
+        $this->currentPage = 1;
+        $this->loadData();
+    }
+
+    public function openEmployeeHistoryDetail($userId)
+    {
+        $this->employeeHistoryDetails = [
+            'name' => \App\Models\Employee::where('user_id', $userId)->first()->full_name ?? 'Unknown',
+            'lates' => \App\Models\Attendance::where('user_id', $userId)
+                        ->whereMonth('date', $this->historyMonth)
+                        ->whereYear('date', $this->historyYear)
+                        ->where('is_late', true)
+                        ->get(),
+            'overtimes' => \App\Models\Overtime::where('user_id', $userId)
+                        ->whereMonth('date', $this->historyMonth)
+                        ->whereYear('date', $this->historyYear)
+                        ->where('status', 'approved')
+                        ->get(),
+            'timeoffs' => \App\Models\TimeOff::where('user_id', $userId)
+                        ->whereMonth('start_date', $this->historyMonth)
+                        ->whereYear('start_date', $this->historyYear)
+                        ->get(),
+        ];
+        $this->employeeHistoryModalOpen = true;
+    }
+
+    public function closeEmployeeHistoryDetail()
+    {
+        $this->employeeHistoryModalOpen = false;
+        $this->employeeHistoryDetails = [];
+    }
+
+    public function updatedFilterData()
+    {
+        $this->loadData();
+        $this->currentPage = 1;
+    }
+
+    public function loadData()
+    {
+        $period = $this->getCurrentPeriod();
+        $month = $period['month'];
+        $year = $period['year'];
+
+        if ($this->isViewingHistory) {
+            $payslips = \App\Models\Payslip::with(['employee.department', 'employee.jobClass'])
+                ->where('period_month', $month)
+                ->where('period_year', $year)
+                ->get();
+            
+            $this->payrollData = [];
+            foreach ($payslips as $payslip) {
+                $emp = $payslip->employee;
+                if (!$emp) continue;
+                $components = $payslip->components_detail ?? [];
+                
+                $this->payrollData[] = [
+                    'id' => $emp->id,
+                    'user_id' => $emp->user_id,
+                    'name' => $emp->full_name,
+                    'nik' => $emp->nik,
+                    'dept' => $emp->department->name ?? '-',
+                    'class' => $emp->jobClass->name ?? '-',
+                    'basic' => $payslip->base_salary,
+                    'allowance' => $payslip->total_allowance ?? 0,
+                    'overtime' => $payslip->overtime_pay,
+                    'reimburse' => $components['reimbursement'] ?? 0,
+                    'deductions' => $payslip->total_deduction,
+                    'thp' => $payslip->net_salary,
+                    'status' => ucfirst($payslip->status),
+                    'ded_bpjs_kes' => $components['ded_bpjs_kes'] ?? 0,
+                    'ded_bpjs_tk' => $components['ded_bpjs_tk'] ?? 0,
+                    'ded_pph' => $components['ded_pph'] ?? 0,
+                    'ded_late' => $components['ded_late'] ?? 0,
+                    'ded_loan' => $components['ded_loan'] ?? 0,
+                    'overtime_hours' => $components['overtime_hours'] ?? 0,
+                    'late_frequency' => $components['late_frequency'] ?? 0,
+                ];
+            }
+            return; // Early return for massive performance boost
+        }
+
+        $employees = \App\Models\Employee::active()->get();
+        $payslips = \App\Models\Payslip::where('period_month', $month)->where('period_year', $year)->get()->keyBy('employee_id');
+
+        $overtimes = \App\Models\Overtime::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->where('status', 'approved')
+            ->get()
+            ->groupBy('user_id');
+
+        $attendances = \App\Models\Attendance::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->where('is_late', true)
+            ->get()
+            ->groupBy('user_id');
+
+        $reimbursements = \App\Models\Reimbursement::whereMonth('approved_at', $month)
+            ->whereYear('approved_at', $year)
+            ->where('status', 'approved')
+            ->get()
+            ->groupBy('user_id');
+
+        $this->payrollData = [];
+        foreach ($employees as $emp) {
+            $payslip = $payslips->get($emp->id);
+            $components = $payslip ? $payslip->components_detail : [];
+            
+            $defaultOvertimeHours = 0;
+            if (isset($overtimes[$emp->user_id])) {
+                $totalMinutes = $overtimes[$emp->user_id]->sum('duration_minutes');
+                $defaultOvertimeHours = round($totalMinutes / 60, 2);
+            }
+
+            $defaultLateFrequency = 0;
+            if (isset($attendances[$emp->user_id])) {
+                $defaultLateFrequency = $attendances[$emp->user_id]->count();
+            }
+
+            $defaultReimburse = 0;
+            if (isset($reimbursements[$emp->user_id])) {
+                $defaultReimburse = $reimbursements[$emp->user_id]->sum('amount');
+            }
+
+            $otHours = $payslip ? ($components['overtime_hours'] ?? 0) : $defaultOvertimeHours;
+            $lateFreq = $payslip ? ($components['late_frequency'] ?? 0) : $defaultLateFrequency;
+            $reimburseTotal = $payslip ? ($components['reimbursement'] ?? 0) : $defaultReimburse;
+
+            $defaultBpjsKes = ($emp->base_salary * $this->bpjsKesRate) / 100;
+            $defaultBpjsTk = ($emp->base_salary * $this->bpjsTkRate) / 100;
+            $ptkp = 'TK/0'; // Default PTKP
+            $defaultPph21 = $this->calculatePph21($emp->base_salary, $ptkp);
+
+            $otPay = $payslip ? $payslip->overtime_pay : ($otHours * $this->overtimeRate);
+            $latePenalty = $payslip ? ($components['ded_late'] ?? 0) : ($lateFreq * $this->latePenalty);
+            $bpjsKes = $payslip ? ($components['ded_bpjs_kes'] ?? 0) : $defaultBpjsKes;
+            $bpjsTk = $payslip ? ($components['ded_bpjs_tk'] ?? 0) : $defaultBpjsTk;
+            $pph21 = $payslip ? ($components['ded_pph'] ?? 0) : $defaultPph21;
+            $loan = $payslip ? ($components['ded_loan'] ?? 0) : 0;
+            
+            $jobClass = $emp->jobClass;
+            $defaultAllowance = $jobClass ? $jobClass->base_allowance : 0;
+            $allowance = $payslip ? $payslip->total_allowance : $defaultAllowance;
+
+            $totalDeduction = $payslip ? $payslip->total_deduction : ($latePenalty + $bpjsKes + $bpjsTk + $pph21 + $loan);
+
+            // Reimburse is added to THP but not taxed
+            $thp = $payslip ? $payslip->net_salary : ($emp->base_salary + $allowance + $otPay + $reimburseTotal - $totalDeduction);
+            
+            $this->payrollData[] = [
+                'id' => $emp->id,
+                'payslip_id' => $payslip?->id,
+                'nik' => $emp->nik,
+                'name' => $emp->full_name,
+                'dept' => $emp->department?->name ?? '-',
+                'class' => $emp->jobClass?->name ?? '-',
+                'ptkp' => $ptkp,
+                'basic' => $payslip ? $payslip->base_salary : $emp->base_salary,
+                'allowance' => $allowance,
+                'overtime' => $otPay,
+                'reimburse' => $reimburseTotal,
+                'deductions' => $totalDeduction,
+                'thp' => $thp,
+                'status' => $payslip ? ucfirst($payslip->status) : 'Draft',
+                'ded_bpjs_kes' => $bpjsKes,
+                'ded_bpjs_tk' => $bpjsTk,
+                'ded_pph' => $pph21,
+                'ded_late' => $latePenalty,
+                'ded_loan' => $components['ded_loan'] ?? 0,
+                'overtime_hours' => $otHours,
+                'late_frequency' => $lateFreq,
+            ];
+        }
+
+        // Load History (only when NOT viewing history detail)
+        if (!$this->isViewingHistory) {
+            $historyRecords = \Illuminate\Support\Facades\DB::table('payslips')
+                ->selectRaw("period_month as month, period_year as year, count(*) as count, sum(net_salary) as total_thp")
+                // Check if all are paid or not. For sqlite/mysql max(status) works loosely. Let's just assume if it exists it's generated, if all are published/paid we can check.
+                // We will just use 'Published' since we only save to db when generated/verified/published.
+                ->where(function($q) use ($month, $year) {
+                    $q->where('period_year', '<', $year)
+                      ->orWhere(function($q2) use ($month, $year) {
+                          $q2->where('period_year', $year)->where('period_month', '<', $month);
+                      });
+                })
+                ->groupBy('period_year', 'period_month')
+                ->orderBy('period_year', 'desc')
+                ->orderBy('period_month', 'desc')
+                ->get();
+
+            $this->payrollHistory = [];
+            foreach ($historyRecords as $record) {
+                $this->payrollHistory[] = [
+                    'month' => $record->month,
+                    'year' => $record->year,
+                    'count' => $record->count,
+                    'total_thp' => $record->total_thp,
+                    'status' => 'Paid', // Since history is by definition past data that's already published
+                ];
+            }
+        }
+
+
     }
 
     public function form(\Filament\Schemas\Schema $form): \Filament\Schemas\Schema
     {
         return $form
             ->schema([
-                \Filament\Forms\Components\Select::make('periode')
-                    ->options([
-                        'Juni 2026' => 'Juni 2026',
-                        'Mei 2026' => 'Mei 2026',
-                        'April 2026' => 'April 2026',
-                        'Maret 2026' => 'Maret 2026',
-                    ])
+                \Filament\Forms\Components\Select::make('dept')
+                    ->options(\App\Models\Department::pluck('name', 'name'))
                     ->native(false)
                     ->live()
-                    ->default('Juni 2026')
-                    ->selectablePlaceholder(false)
+                    ->searchable()
+                    ->placeholder('Semua Dept')
                     ->hiddenLabel()
                     ->extraAttributes(['class' => 'w-full sm:w-48']),
+                
+                \Filament\Forms\Components\Select::make('class')
+                    ->options(\App\Models\JobClass::pluck('name', 'name'))
+                    ->native(false)
+                    ->live()
+                    ->searchable()
+                    ->placeholder('Semua Kelas')
+                    ->hiddenLabel()
+                    ->extraAttributes(['class' => 'w-full sm:w-56']),
             ])
-            ->statePath('filterData');
+            ->statePath('filterData')
+            ->columns(2);
     }
+
+    public function getFilteredPayrollDataProperty()
+    {
+        $data = $this->payrollData;
+
+        if (!empty($this->searchQuery)) {
+            $data = array_filter($data, function ($item) {
+                return stripos($item['name'], $this->searchQuery) !== false || stripos($item['nik'], $this->searchQuery) !== false;
+            });
+        }
+
+        if (!empty($this->filterData['dept'])) {
+            $data = array_filter($data, fn($item) => $item['dept'] === $this->filterData['dept']);
+        }
+
+        if (!empty($this->filterData['class'])) {
+            $data = array_filter($data, fn($item) => $item['class'] === $this->filterData['class']);
+        }
+
+        return $data;
+    }
+
+    public function getPaginatedPayrollDataProperty()
+    {
+        $filtered = $this->filteredPayrollData;
+        $offset = ($this->currentPage - 1) * $this->perPage;
+        return array_slice($filtered, $offset, $this->perPage, true);
+    }
+
+    public function getTotalPagesProperty()
+    {
+        $total = count($this->filteredPayrollData);
+        return $total > 0 ? ceil($total / $this->perPage) : 1;
+    }
+
+    public function nextPage()
+    {
+        if ($this->currentPage < $this->totalPages) {
+            $this->currentPage++;
+        }
+    }
+
+    public function previousPage()
+    {
+        if ($this->currentPage > 1) {
+            $this->currentPage--;
+        }
+    }
+
+    public function setPage($page)
+    {
+        $this->currentPage = $page;
+    }
+
+    public function updatedSearchQuery() { $this->currentPage = 1; }
 
     public function openEditModal($index)
     {
@@ -72,12 +417,16 @@ class Payroll extends Page implements HasForms
         $data = $this->payrollData[$index];
         $this->editName = $data['name'];
         $this->editBasic = $data['basic'];
+        $this->editAllowance = $data['allowance'] ?? 0;
         $this->editOvertime = $data['overtime'];
+        $this->editOvertimeHours = $data['overtime_hours'] ?? 0;
         $this->editDedBpjsKesehatan = $data['ded_bpjs_kes'] ?? 0;
         $this->editDedBpjsKetenagakerjaan = $data['ded_bpjs_tk'] ?? 0;
         $this->editDedPph21 = $data['ded_pph'] ?? 0;
         $this->editDedLate = $data['ded_late'] ?? 0;
+        $this->editLateFrequency = $data['late_frequency'] ?? 0;
         $this->editDedLoan = $data['ded_loan'] ?? 0;
+        $this->editReimburse = $data['reimburse'] ?? 0;
         $this->editDeductions = $data['deductions'];
         $this->editThp = $data['thp'];
         $this->isEditing = true;
@@ -93,15 +442,24 @@ class Payroll extends Page implements HasForms
     }
 
     public function updatedEditOvertime() { $this->recalculate(); }
+    public function updatedEditAllowance() { $this->recalculate(); }
+    public function updatedEditOvertimeHours() {
+        $this->editOvertime = (int)$this->editOvertimeHours * $this->overtimeRate;
+        $this->recalculate();
+    }
     public function updatedEditDedBpjsKesehatan() { $this->recalculate(); }
     public function updatedEditDedBpjsKetenagakerjaan() { $this->recalculate(); }
     // We don't trigger recalculate from updatedEditDedPph21 because we are auto-calculating it, 
     // unless the user overrides it. If they override it, we just update THP.
     public function updatedEditDedPph21() { 
         $this->editDeductions = (int)$this->editDedBpjsKesehatan + (int)$this->editDedBpjsKetenagakerjaan + (int)$this->editDedPph21 + (int)$this->editDedLate + (int)$this->editDedLoan;
-        $this->editThp = $this->editBasic + (int)$this->editOvertime - $this->editDeductions;
+        $this->editThp = $this->editBasic + (int)$this->editOvertime + (int)$this->editReimburse - $this->editDeductions;
     }
     public function updatedEditDedLate() { $this->recalculate(); }
+    public function updatedEditLateFrequency() {
+        $this->editDedLate = (int)$this->editLateFrequency * $this->latePenalty;
+        $this->recalculate();
+    }
     public function updatedEditDedLoan() { $this->recalculate(); }
 
     private function calculatePph21($grossIncome, $ptkp)
@@ -149,55 +507,214 @@ class Payroll extends Page implements HasForms
 
     private function recalculate()
     {
-        $grossIncome = $this->editBasic + (int)$this->editOvertime;
-        $ptkp = $this->payrollData[$this->editingIndex]['ptkp'] ?? 'TK/0';
-        
-        // Sesuai permintaan/kebijakan perusahaan, hitung pajak hanya dari Gaji Pokok
-        $taxableIncome = $this->editBasic;
-        
-        // Auto hitung PPh 21
-        $this->editDedPph21 = $this->calculatePph21($taxableIncome, $ptkp);
+        $grossIncome = $this->editBasic + (int)$this->editAllowance + (int)$this->editOvertime;
 
-        $this->editDeductions = (int)$this->editDedBpjsKesehatan + (int)$this->editDedBpjsKetenagakerjaan + (int)$this->editDedPph21 + (int)$this->editDedLate + (int)$this->editDedLoan;
-        $this->editThp = $grossIncome - $this->editDeductions;
+        $this->editDeductions = (int)$this->editDedBpjsKesehatan + (int)$this->editDedBpjsKetenagakerjaan + (int)$this->editDedPph21 + (int)$this->editDedLate;
+        $this->editThp = $grossIncome + (int)$this->editReimburse - $this->editDeductions;
+    }
+
+    private function saveToDb($status)
+    {
+        $data = $this->payrollData[$this->editingIndex];
+        $period = $this->getCurrentPeriod();
+        $month = $period['month'];
+        $year = $period['year'];
+
+        \App\Models\Payslip::updateOrCreate([
+            'employee_id' => $data['id'],
+            'period_month' => $month,
+            'period_year' => $year,
+        ], [
+            'base_salary' => $this->editBasic,
+            'total_allowance' => $this->editAllowance,
+            'overtime_pay' => $this->editOvertime,
+            'total_deduction' => $this->editDeductions,
+            'net_salary' => $this->editThp,
+            'status' => strtolower($status),
+            'payment_date' => strtolower($status) === 'paid' ? now() : null,
+            'components_detail' => [
+                'overtime_hours' => $this->editOvertimeHours,
+                'late_frequency' => $this->editLateFrequency,
+                'ded_bpjs_kes' => $this->editDedBpjsKesehatan,
+                'ded_bpjs_tk' => $this->editDedBpjsKetenagakerjaan,
+                'ded_pph' => $this->editDedPph21,
+                'ded_late' => $this->editDedLate,
+                'ded_loan' => $this->editDedLoan,
+                'reimbursement' => $this->editReimburse,
+            ]
+        ]);
+        
+        $this->loadData();
+    }
+
+    public function saveDraft()
+    {
+        $this->saveToDb('draft');
+        $this->closeEditModal();
+        
+        \Filament\Notifications\Notification::make()
+            ->title('Disimpan sebagai Draft')
+            ->body('Rincian penggajian ' . $this->editName . ' telah disimpan.')
+            ->success()
+            ->send();
     }
 
     public function savePayroll()
     {
-        $this->payrollData[$this->editingIndex]['overtime'] = (int)$this->editOvertime;
-        $this->payrollData[$this->editingIndex]['ded_bpjs_kes'] = (int)$this->editDedBpjsKesehatan;
-        $this->payrollData[$this->editingIndex]['ded_bpjs_tk'] = (int)$this->editDedBpjsKetenagakerjaan;
-        $this->payrollData[$this->editingIndex]['ded_pph'] = (int)$this->editDedPph21;
-        $this->payrollData[$this->editingIndex]['ded_late'] = (int)$this->editDedLate;
-        $this->payrollData[$this->editingIndex]['ded_loan'] = (int)$this->editDedLoan;
-        $this->payrollData[$this->editingIndex]['deductions'] = $this->editDeductions;
-        $this->payrollData[$this->editingIndex]['thp'] = $this->editThp;
+        $this->saveToDb('validated');
         $this->closeEditModal();
         
         \Filament\Notifications\Notification::make()
-            ->title('Berhasil diperbarui')
-            ->body('Rincian penggajian ' . $this->editName . ' telah disimpan sebagai Draft.')
+            ->title('Tersimpan & Di-ACC')
+            ->body('Rincian penggajian ' . $this->editName . ' telah di-ACC dan ditandai Verified.')
             ->success()
             ->send();
     }
 
-    public function publishPayroll()
+    public function publishAll()
     {
-        $this->payrollData[$this->editingIndex]['overtime'] = (int)$this->editOvertime;
-        $this->payrollData[$this->editingIndex]['ded_bpjs_kes'] = (int)$this->editDedBpjsKesehatan;
-        $this->payrollData[$this->editingIndex]['ded_bpjs_tk'] = (int)$this->editDedBpjsKetenagakerjaan;
-        $this->payrollData[$this->editingIndex]['ded_pph'] = (int)$this->editDedPph21;
-        $this->payrollData[$this->editingIndex]['ded_late'] = (int)$this->editDedLate;
-        $this->payrollData[$this->editingIndex]['ded_loan'] = (int)$this->editDedLoan;
-        $this->payrollData[$this->editingIndex]['deductions'] = $this->editDeductions;
-        $this->payrollData[$this->editingIndex]['thp'] = $this->editThp;
-        $this->payrollData[$this->editingIndex]['status'] = 'Published'; // Mark as published
-        $this->closeEditModal();
+        $period = $this->getCurrentPeriod();
+        $month = $period['month'];
+        $year = $period['year'];
+        $periode = $period['text'];
+
+        foreach ($this->payrollData as $data) {
+            if (strtolower($data['status']) === 'paid') {
+                continue;
+            }
+
+            \App\Models\Payslip::updateOrCreate([
+                'employee_id' => $data['id'],
+                'period_month' => $month,
+                'period_year' => $year,
+            ], [
+                'base_salary' => $data['basic'],
+                'total_allowance' => $data['allowance'],
+                'overtime_pay' => $data['overtime'],
+                'total_deduction' => $data['deductions'],
+                'net_salary' => $data['thp'],
+                'status' => 'paid',
+                'payment_date' => now(),
+                'components_detail' => [
+                    'overtime_hours' => $data['overtime_hours'],
+                    'late_frequency' => $data['late_frequency'],
+                    'ded_bpjs_kes' => $data['ded_bpjs_kes'],
+                    'ded_bpjs_tk' => $data['ded_bpjs_tk'],
+                    'ded_pph' => $data['ded_pph'],
+                    'ded_late' => $data['ded_late'],
+                    'ded_loan' => $data['ded_loan'],
+                    'reimbursement' => $data['reimburse'],
+                ]
+            ]);
+        }
+
+        $this->loadData();
         
         \Filament\Notifications\Notification::make()
-            ->title('Berhasil dipublish')
-            ->body('Rincian penggajian ' . $this->editName . ' telah dipublish dan dikunci.')
+            ->title('Berhasil dipublish secara massal')
+            ->body("Semua slip gaji draft untuk periode $periode telah dipublish.")
             ->success()
             ->send();
+    }
+
+    public function exportExcel()
+    {
+        $data = $this->filteredPayrollData;
+        $periodText = $this->getCurrentPeriod()['text'];
+        $filename = "Rekap_Payroll_" . str_replace(' ', '_', $periodText) . ".csv";
+
+        $callback = function() use($data) {
+            $file = fopen('php://output', 'w');
+            // Menambahkan BOM untuk UTF-8 agar bisa dibaca Excel dengan baik
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, [
+                'NIK', 'Nama Pegawai', 'Departemen', 'Kelas Jabatan', 
+                'Gaji Pokok', 'Tunjangan Jabatan', 'Honor Lembur', 'Reimbursement', 
+                'BPJS Kesehatan', 'BPJS Ketenagakerjaan', 'PPh 21', 'Pot. Telat', 
+                'Total Potongan', 'Take Home Pay', 'Status'
+            ], ';');
+
+            foreach ($data as $row) {
+                fputcsv($file, [
+                    "'" . $row['nik'],
+                    $row['name'],
+                    $row['dept'],
+                    $row['class'],
+                    $row['basic'],
+                    $row['allowance'] ?? 0,
+                    $row['overtime'],
+                    $row['reimburse'] ?? 0,
+                    $row['ded_bpjs_kes'] ?? 0,
+                    $row['ded_bpjs_tk'] ?? 0,
+                    $row['ded_pph'] ?? 0,
+                    $row['ded_late'] ?? 0,
+                    $row['deductions'],
+                    $row['thp'],
+                    $row['status']
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->streamDownload($callback, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    public function generatePayroll()
+    {
+        $period = $this->getCurrentPeriod();
+        
+        $cacheKey = 'payroll_print_' . auth()->id();
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $this->filteredPayrollData, 60);
+
+        return redirect()->route('payroll.print', [
+            'month' => $period['month'],
+            'year' => $period['year']
+        ]);
+    }
+
+    public function exportHistoryRow($month, $year)
+    {
+        // Temporarily load data for the requested month
+        $originalViewing = $this->isViewingHistory;
+        $originalMonth = $this->historyMonth;
+        $originalYear = $this->historyYear;
+
+        $this->isViewingHistory = true;
+        $this->historyMonth = $month;
+        $this->historyYear = $year;
+        $this->loadData();
+        
+        $response = $this->exportExcel();
+
+        // Revert
+        $this->isViewingHistory = $originalViewing;
+        $this->historyMonth = $originalMonth;
+        $this->historyYear = $originalYear;
+        $this->loadData();
+
+        return $response;
+    }
+
+    public function generateHistoryRow($month, $year)
+    {
+        // Temporarily load data for the requested month
+        $originalViewing = $this->isViewingHistory;
+        $originalMonth = $this->historyMonth;
+        $originalYear = $this->historyYear;
+
+        $this->isViewingHistory = true;
+        $this->historyMonth = $month;
+        $this->historyYear = $year;
+        $this->loadData();
+        
+        $response = $this->generatePayroll();
+
+        // Revert
+        $this->isViewingHistory = $originalViewing;
+        $this->historyMonth = $originalMonth;
+        $this->historyYear = $originalYear;
+        $this->loadData();
+
+        return $response;
     }
 }

@@ -2,3 +2,12 @@
 
 @source "../../../../app";
 @source "../../../../resources/views";
+
+/* Hide scrollbar for tables */
+.fi-ta-content, .fi-ta-content-ctn, .overflow-x-auto {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+.fi-ta-content::-webkit-scrollbar, .fi-ta-content-ctn::-webkit-scrollbar, .overflow-x-auto::-webkit-scrollbar {
+    display: none !important;
+}

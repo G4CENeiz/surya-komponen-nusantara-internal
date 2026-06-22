@@ -25,7 +25,7 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'employee') {
-            return $this->hasRole('employee');
+            return $this->hasAnyRole(['employee', 'hr', 'accounting']);
         }
 
         if ($panel->getId() === 'hrd') {
@@ -75,15 +75,5 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-
-    public function timeOffs(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(TimeOff::class);
-    }
-
-    public function overtimes(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Overtime::class);
     }
 }

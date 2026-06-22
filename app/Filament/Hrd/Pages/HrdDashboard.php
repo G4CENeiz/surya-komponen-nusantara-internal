@@ -6,5 +6,5 @@ use Filament\Pages\Dashboard;
 
 class HrdDashboard extends Dashboard
 {
-    //
+    protected static string $routePath = '/';
 }

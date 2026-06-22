@@ -16,6 +16,7 @@ class CreateAnnouncement extends CreateRecord
     {
         $data['created_by'] = auth()->id();
         $data['is_active'] = true;
+        $data['type'] = 'announcement';
 
         return $data;
     }

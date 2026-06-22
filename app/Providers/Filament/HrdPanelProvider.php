@@ -39,7 +39,7 @@ class HrdPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Hrd/Resources'), for: 'App\Filament\Hrd\Resources')
             ->discoverPages(in: app_path('Filament/Hrd/Pages'), for: 'App\Filament\Hrd\Pages')
             ->pages([
-                Dashboard::class,
+                // Custom dashboard generated in app/Filament/Hrd/Pages
             ])
             ->discoverWidgets(in: app_path('Filament/Hrd/Widgets'), for: 'App\Filament\Hrd\Widgets')
             ->widgets([

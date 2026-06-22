@@ -1,44 +1,47 @@
 @props(['records'])
 
-<div style="overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-        <thead>
-            <tr style="border-bottom: 1px solid rgba(128, 128, 128, 0.2);">
-                <th style="padding: 0.625rem 0.75rem; text-align: left; font-weight: 600; opacity: 0.6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Date</th>
-                <th style="padding: 0.625rem 0.75rem; text-align: left; font-weight: 600; opacity: 0.6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Clock In</th>
-                <th style="padding: 0.625rem 0.75rem; text-align: left; font-weight: 600; opacity: 0.6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Clock Out</th>
-                <th style="padding: 0.625rem 0.75rem; text-align: left; font-weight: 600; opacity: 0.6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Hours</th>
-                <th style="padding: 0.625rem 0.75rem; text-align: left; font-weight: 600; opacity: 0.6; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+<div class="overflow-x-auto rounded-xl border border-gray-200">
+    <table class="w-full text-left divide-y table-auto fi-ta-table">
+        <thead class="bg-gray-50 text-sm font-medium text-gray-600">
+            <tr>
+                <th class="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Date</th>
+                <th class="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Clock In</th>
+                <th class="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Clock Out</th>
+                <th class="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Hours</th>
+                <th class="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Status</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-900">
             @forelse($records as $record)
-                <tr style="border-bottom: 1px solid rgba(128, 128, 128, 0.1);">
-                    <td style="padding: 0.625rem 0.75rem; font-weight: 500;">{{ $record['date'] }}</td>
-                    <td style="padding: 0.625rem 0.75rem;">{{ $record['clock_in_at'] ?? '—' }}</td>
-                    <td style="padding: 0.625rem 0.75rem;">{{ $record['clock_out_at'] ?? '—' }}</td>
-                    <td style="padding: 0.625rem 0.75rem;">
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3 font-medium">{{ $record['date'] }}</td>
+                    <td class="px-4 py-3 text-gray-500">{{ $record['clock_in_at'] ?? '—' }}</td>
+                    <td class="px-4 py-3 text-gray-500">{{ $record['clock_out_at'] ?? '—' }}</td>
+                    <td class="px-4 py-3 text-gray-500">
                         {{ $record['worked_hours'] ? number_format($record['worked_hours'], 1) . 'h' : '—' }}
                     </td>
-                    <td style="padding: 0.625rem 0.75rem;">
+                    <td class="px-4 py-3">
                         @php
-                            $statusStyles = [
-                                'pending_hr' => ['bg' => 'rgba(245, 158, 11, 0.15)', 'text' => '#f59e0b'],
-                                'approved' => ['bg' => 'rgba(34, 197, 94, 0.15)', 'text' => '#22c55e'],
-                                'rejected' => ['bg' => 'rgba(239, 68, 68, 0.15)', 'text' => '#ef4444'],
+                            $statusColors = [
+                                'pending_hr' => 'warning',
+                                'approved' => 'success',
+                                'rejected' => 'danger',
                             ];
-                            $style = $statusStyles[$record['status']] ?? ['bg' => 'rgba(107, 114, 128, 0.15)', 'text' => '#6b7280'];
+                            $color = $statusColors[$record['status']] ?? 'gray';
                             $label = ucfirst(str_replace('_', ' ', $record['status']));
                         @endphp
-                        <span style="display: inline-flex; align-items: center; border-radius: 9999px; padding: 0.125rem 0.625rem; font-size: 0.75rem; font-weight: 500; background-color: {{ $style['bg'] }}; color: {{ $style['text'] }};">
+                        <x-filament::badge :color="$color">
                             {{ $label }}
-                        </span>
+                        </x-filament::badge>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" style="padding: 2rem; text-align: center; opacity: 0.6;">
-                        No attendance records found
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center justify-center">
+                            <x-heroicon-o-clock class="w-8 h-8 text-gray-300 mb-2" />
+                            <p>No attendance records found</p>
+                        </div>
                     </td>
                 </tr>
             @endforelse

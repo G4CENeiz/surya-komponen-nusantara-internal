@@ -1,73 +1,91 @@
 <x-filament-panels::page>
-    <div class="bg-white rounded-lg border border-gray-200 p-0 overflow-hidden">
-        <div class="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
-            <div>
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Daftar Pegawai</h3>
-                <p class="text-sm text-gray-500">Kelola dan sesuaikan gaji pokok untuk setiap karyawan.</p>
-            </div>
-            <div class="flex gap-3 w-full sm:w-auto">
-                {{-- Search --}}
-                <div class="fi-input-wrapper flex rounded-lg ring-1 transition duration-75 bg-white focus-within:ring-2 ring-gray-950/10 focus-within:ring-primary-600 w-full sm:w-64">
+    <x-filament::section>
+        <x-slot name="heading">Daftar Pegawai</x-slot>
+        <x-slot name="description">Kelola dan sesuaikan gaji pokok untuk setiap karyawan.</x-slot>
+
+        {{-- Filters & Search --}}
+        <div class="flex flex-col sm:flex-row gap-4 items-center mb-4">
+            {{-- Search --}}
+            <div class="w-full sm:w-72">
+                <div class="fi-input-wrapper flex rounded-lg ring-1 transition duration-75 bg-white focus-within:ring-2 ring-gray-950/10 focus-within:ring-primary-600 w-full h-[38px] shadow-sm">
                     <x-heroicon-m-magnifying-glass class="w-5 h-5 text-gray-400 ml-3 my-auto" />
-                    <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="Cari NIK / Nama..." class="fi-input block w-full border-none py-1.5 pl-2 pr-3 text-sm text-gray-950 transition duration-75 focus:ring-0 bg-transparent" />
+                    <input type="text" wire:model.live.debounce.300ms="searchQuery" placeholder="Cari NIK / Nama..." class="fi-input block w-full border-none py-1.5 pl-2 pr-3 text-sm text-gray-950 transition duration-75 focus:ring-0 bg-transparent h-full" />
                 </div>
             </div>
+
+            {{-- Filters --}}
+            <div class="w-full sm:w-[450px]">
+                {{ $this->form }}
+            </div>
         </div>
 
-        {{-- Filters --}}
-        <div class="p-4 border-b border-gray-100 bg-white flex flex-wrap gap-4 items-end">
-            {{ $this->form }}
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
-                <thead>
-                    <tr class="bg-gray-50 border-b border-gray-200 text-sm text-gray-500">
-                        <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('nik')">
-                            <div class="flex items-center gap-1">NIK @if($sortColumn === 'nik') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-blue-600" /> @endif</div>
+        <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="w-full text-left divide-y table-auto fi-ta-table">
+                <thead class="bg-gray-50 text-sm font-medium text-gray-600">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('nik')">
+                            <div class="flex items-center gap-1">NIK @if($sortColumn === 'nik') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-primary-600" /> @endif</div>
                         </th>
-                        <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('name')">
-                            <div class="flex items-center gap-1">Nama Pegawai @if($sortColumn === 'name') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-blue-600" /> @endif</div>
+                        <th class="w-full px-4 py-3 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('name')">
+                            <div class="flex items-center gap-1">Nama Pegawai @if($sortColumn === 'name') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-primary-600" /> @endif</div>
                         </th>
-                        <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('dept')">
-                            <div class="flex items-center gap-1">Departemen @if($sortColumn === 'dept') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-blue-600" /> @endif</div>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('dept')">
+                            <div class="flex items-center gap-1">Departemen @if($sortColumn === 'dept') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-primary-600" /> @endif</div>
                         </th>
-                        <th class="px-6 py-4 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('class')">
-                            <div class="flex items-center gap-1">Kelas Jabatan @if($sortColumn === 'class') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-blue-600" /> @endif</div>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('class')">
+                            <div class="flex items-center gap-1">Kelas Jabatan @if($sortColumn === 'class') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-primary-600" /> @endif</div>
                         </th>
-                        <th class="px-6 py-4 font-semibold text-right cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('salary')">
-                            <div class="flex items-center justify-end gap-1">Gaji Pokok (Rp) @if($sortColumn === 'salary') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-blue-600" /> @endif</div>
+                        <th class="px-4 py-3 font-semibold text-right cursor-pointer hover:bg-gray-100 transition" wire:click="sortBy('salary')">
+                            <div class="flex items-center justify-end gap-1">Gaji Pokok (Rp) @if($sortColumn === 'salary') <x-heroicon-m-arrows-up-down class="w-3 h-3 text-primary-600" /> @endif</div>
                         </th>
-                        <th class="px-6 py-4 font-semibold text-center w-28">Aksi</th>
+                        <th class="px-4 py-3 font-semibold text-center w-24">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($this->filteredData as $index => $peg)
-                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $peg['nik'] }}</td>
-                        <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ $peg['name'] }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $peg['dept'] }}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                {{ $peg['class'] }}
-                            </span>
+                <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-900">
+                    @forelse($this->paginatedData as $index => $emp)
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $emp['nik'] }}</td>
+                        <td class="px-4 py-3 font-semibold text-gray-900 truncate max-w-[200px]">{{ $emp['name'] }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ $emp['dept'] }}</td>
+                        <td class="px-4 py-3">
+                            <x-filament::badge color="info">
+                                {{ $emp['class'] }}
+                            </x-filament::badge>
                         </td>
-                        <td class="px-6 py-4 text-sm font-bold text-gray-900 text-right">
-                            {{ number_format($peg['salary'], 0, ',', '.') }}
+                        <td class="px-4 py-3 font-bold text-gray-900 text-right">
+                            {{ number_format($emp['salary'], 0, ',', '.') }}
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <button wire:click="openEditModal({{ $index }})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+                        <td class="px-4 py-3 text-center">
+                            <button wire:click="openEditModal({{ $index }})" class="text-primary-600 hover:text-primary-800 font-medium transition-colors">Edit</button>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-gray-500 text-sm">Tidak ada data pegawai yang sesuai dengan filter.</td>
+                        <td colspan="6" class="p-8 text-center text-gray-500">Tidak ada data pegawai yang sesuai dengan filter.</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
+        
+        {{-- Pagination --}}
+        @if($this->totalPages > 1)
+        <div class="mt-4 flex justify-between items-center text-sm">
+            <span class="text-gray-600">
+                Menampilkan halaman <strong>{{ $currentPage }}</strong> dari <strong>{{ $this->totalPages }}</strong> 
+                (Total {{ count($this->filteredData) }} data)
+            </span>
+            <div class="flex gap-2">
+                <x-filament::button color="gray" wire:click="previousPage" :disabled="$currentPage <= 1" size="sm">
+                    Prev
+                </x-filament::button>
+                <x-filament::button color="gray" wire:click="nextPage" :disabled="$currentPage >= $this->totalPages" size="sm">
+                    Next
+                </x-filament::button>
+            </div>
+        </div>
+        @endif
+    </x-filament::section>
 
     {{-- Modal Edit --}}
     @if($isEditing)
