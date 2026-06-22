@@ -25,7 +25,7 @@ class Employee extends Model
         'office_email',
         'department_id',
         'job_class_id',
-        'workplace_id',
+        'work_location_id',
         'hire_date',
         'termination_date',
         'status',

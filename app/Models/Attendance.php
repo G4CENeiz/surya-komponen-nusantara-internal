@@ -12,68 +12,43 @@ class Attendance extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'user_id',
-        'workplace_id',
+        'employee_id',
         'date',
-        'clock_in_at',
+        'clock_in',
+        'clock_out',
+        'status',
         'clock_in_lat',
         'clock_in_lng',
-        'clock_in_ip',
-        'clock_in_photo_path',
-        'clock_in_face_confidence',
-        'clock_in_within_geofence',
-        'clock_in_method',
-        'clock_out_at',
         'clock_out_lat',
         'clock_out_lng',
-        'clock_out_ip',
+        'clock_in_photo_path',
+        'clock_in_within_geofence',
         'clock_out_photo_path',
-        'clock_out_face_confidence',
         'clock_out_within_geofence',
-        'clock_out_method',
-        'status',
-        'hr_notes',
+        'is_verified',
         'verified_by',
         'verified_at',
-        'worked_hours',
-        'is_late',
-        'is_early_leave',
+        'notes',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'date' => 'date',
-            'clock_in_at' => 'datetime',
-            'clock_out_at' => 'datetime',
+            'status' => AttendanceStatus::class,
             'clock_in_within_geofence' => 'boolean',
             'clock_out_within_geofence' => 'boolean',
-            'status' => AttendanceStatus::class,
+            'is_verified' => 'boolean',
             'verified_at' => 'datetime',
-            'is_late' => 'boolean',
-            'is_early_leave' => 'boolean',
         ];
     }
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+    // ── Relationships ──────────────────────────────────
 
-    public function workplace(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(Workplace::class);
+        return $this->belongsTo(Employee::class);
     }
 
     public function verifier(): BelongsTo
@@ -81,33 +56,36 @@ class Attendance extends Model
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    public function logs(): HasMany
+    public function corrections(): HasMany
     {
-        return $this->hasMany(AttendanceLog::class);
+        return $this->hasMany(AttendanceCorrection::class);
     }
 
-    /**
-     * Scope to get today's attendance.
-     */
+    // ── Scopes ─────────────────────────────────────────
+
     public function scopeToday($query)
     {
         return $query->whereDate('date', now()->toDateString());
     }
 
-    /**
-     * Scope to get pending HR review.
-     */
     public function scopePendingReview($query)
     {
-        return $query->where('status', AttendanceStatus::PendingHr);
+        return $query->where('is_verified', false);
     }
 
-    /**
-     * Scope to get attendance outside geofence.
-     */
-    public function scopeOutsideGeofence($query)
+    public function scopeVerified($query)
     {
-        return $query->where('clock_in_within_geofence', false)
-            ->orWhere('clock_out_within_geofence', false);
+        return $query->where('is_verified', true);
+    }
+
+    public function scopeForDate($query, $date)
+    {
+        return $query->whereDate('date', $date);
+    }
+
+    public function scopeForDateRange($query, $from, $to)
+    {
+        return $query->whereDate('date', '>=', $from)
+            ->whereDate('date', '<=', $to);
     }
 }

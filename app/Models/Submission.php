@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\SubmissionStatus;
+use App\Enums\SubmissionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +39,8 @@ class Submission extends Model
             'overtime_date' => 'date',
             'total_hours' => 'decimal:2',
             'reviewed_at' => 'datetime',
+            'status' => SubmissionStatus::class,
+            'type' => SubmissionType::class,
         ];
     }
 
