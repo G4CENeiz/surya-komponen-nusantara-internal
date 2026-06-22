@@ -17,6 +17,7 @@ class Announcement extends Model
         'content',
         'attachment_path',
         'target',
+        'department_id',
         'published_at',
         'expired_at',
         'is_active',
@@ -35,6 +36,11 @@ class Announcement extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     public function employees(): BelongsToMany
