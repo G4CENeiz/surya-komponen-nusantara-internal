@@ -2,8 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -27,14 +27,19 @@ class AccountingPanelProvider extends PanelProvider
         return $panel
             ->id('accounting')
             ->path('accounting')
+            ->viteTheme('resources/css/filament/employee/theme.css')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
+            ->darkMode(false)
+            ->sidebarWidth('14rem')
+            ->sidebarCollapsibleOnDesktop()
+            ->font('Instrument Sans')
             ->discoverResources(in: app_path('Filament/Accounting/Resources'), for: 'App\Filament\Accounting\Resources')
             ->discoverPages(in: app_path('Filament/Accounting/Pages'), for: 'App\Filament\Accounting\Pages')
             ->pages([
-                Dashboard::class,
+                // Custom dashboard page generated
             ])
             ->discoverWidgets(in: app_path('Filament/Accounting/Widgets'), for: 'App\Filament\Accounting\Widgets')
             ->widgets([
@@ -53,7 +58,7 @@ class AccountingPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->plugins([
-                FilamentShieldPlugin::make(),
+                // Removed FilamentShieldPlugin so it doesn't show the Roles menu in Accounting
             ])
             ->authMiddleware([
                 Authenticate::class,
