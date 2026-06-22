@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\JobClass;
 use App\Models\User;
 use App\Models\Workplace;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,6 +27,9 @@ class EmployeeFactory extends Factory
         $departmentWeights = [70, 5, 5, 5, 5, 10];
         $departmentIndex = $this->weightedRandom($departmentWeights);
         $departmentName = $departments[$departmentIndex];
+
+        // Random job class between 1-5
+        $jobClassId = $faker->numberBetween(1, 5);
 
         // Weighted status: 90% active
         $status = $faker->optional(0.9, 'inactive')->randomElement(['active']);
@@ -51,13 +55,13 @@ class EmployeeFactory extends Factory
             'address' => $faker->address(),
             'office_email' => $faker->safeEmail(),
             'department_id' => Department::where('name', $departmentName)->first()->id ?? Department::factory(),
-            'job_class_id' => $faker->numberBetween(1, 5),
-            'workplace_id' => Workplace::inRandomOrder()->first()->id ?? Workplace::factory(),
+            'job_class_id' => $jobClassId,
+            'work_location_id' => \App\Models\WorkLocation::inRandomOrder()->first()->id ?? \App\Models\WorkLocation::factory(),
             'hire_date' => $faker->dateTimeBetween('-5 years', 'now'),
             'termination_date' => $status === 'inactive' ? $faker->dateTimeBetween('-1 year', 'now') : null,
             'status' => $status,
             'face_photo_path' => 'face-references/dummy-face.jpg',
-            'base_salary' => $faker->numberBetween(3000000, 15000000),
+            'base_salary' => $this->generateRealisticSalary($jobClassId),
         ];
     }
 
@@ -75,6 +79,26 @@ class EmployeeFactory extends Factory
         }
 
         return count($weights) - 1;
+    }
+
+    private function generateRealisticSalary(int $jobClassId): int
+    {
+        $jobClass = JobClass::find($jobClassId);
+
+        if (! $jobClass) {
+            // Fallback: generate a round number between 3M and 15M
+            return rand(3, 15) * 1_000_000;
+        }
+
+        $min = (int) $jobClass->min_salary;
+        $max = (int) $jobClass->max_salary;
+
+        // Generate salary in increments of 100,000 (realistic for Indonesian salary)
+        $step = 100_000;
+        $steps = (int) (($max - $min) / $step);
+        $randomStep = mt_rand(0, max($steps, 1));
+
+        return $min + ($randomStep * $step);
     }
 
     public function inactive(): static

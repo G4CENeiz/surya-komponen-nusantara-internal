@@ -14,7 +14,7 @@ class CreateAssignment extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['created_by'] = auth()->id();
+        $data['created_by'] = auth()->id() ?? 1;
 
         return $data;
     }

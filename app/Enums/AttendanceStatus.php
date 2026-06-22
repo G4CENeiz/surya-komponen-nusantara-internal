@@ -4,25 +4,34 @@ namespace App\Enums;
 
 enum AttendanceStatus: string
 {
-    case PendingHr = 'pending_hr';
-    case Approved = 'approved';
-    case Rejected = 'rejected';
+    case Present = 'present';
+    case Leave = 'leave';
+    case OnLeave = 'on_leave';
+    case Sick = 'sick';
+    case FieldDuty = 'field_duty';
+    case Absent = 'absent';
 
     public function label(): string
     {
         return match ($this) {
-            self::PendingHr => 'Pending HR Review',
-            self::Approved => 'Approved',
-            self::Rejected => 'Rejected',
+            self::Present => 'Present',
+            self::Leave => 'Leave',
+            self::OnLeave => 'On Leave',
+            self::Sick => 'Sick',
+            self::FieldDuty => 'Field Duty',
+            self::Absent => 'Absent',
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::PendingHr => 'warning',
-            self::Approved => 'success',
-            self::Rejected => 'danger',
+            self::Present => 'success',
+            self::Leave => 'info',
+            self::OnLeave => 'warning',
+            self::Sick => 'danger',
+            self::FieldDuty => 'info',
+            self::Absent => 'danger',
         };
     }
 }

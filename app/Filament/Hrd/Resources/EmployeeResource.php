@@ -182,14 +182,7 @@ class EmployeeResource extends Resource
                         ->schema([
                             Grid::make(2)
                                 ->schema([
-                                    TextInput::make('latitude')
-                                        ->label('Latitude')
-                                        ->numeric()
-                                        ->placeholder('-6.22689000'),
-                                    TextInput::make('longitude')
-                                        ->label('Longitude')
-                                        ->numeric()
-                                        ->placeholder('106.81473000'),
+                                    // Latitude and longitude are stored in work_locations table
                                 ]),
                         ]),
 
