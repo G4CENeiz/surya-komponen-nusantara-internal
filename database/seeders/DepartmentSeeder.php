@@ -10,14 +10,12 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
-            ['name' => 'Human Resources', 'code' => 'HRD', 'description' => 'Human Resources & Development department'],
-            ['name' => 'Finance & Accounting', 'code' => 'FIN', 'description' => 'Finance and accounting operations'],
-            ['name' => 'Information Technology', 'code' => 'IT', 'description' => 'IT infrastructure and development'],
-            ['name' => 'Marketing', 'code' => 'MKT', 'description' => 'Marketing and brand management'],
-            ['name' => 'Operations', 'code' => 'OPS', 'description' => 'Daily operations and logistics'],
-            ['name' => 'Sales', 'code' => 'SLS', 'description' => 'Sales and business development'],
-            ['name' => 'Legal', 'code' => 'LGL', 'description' => 'Legal and compliance'],
-            ['name' => 'Administration', 'code' => 'ADM', 'description' => 'General administration'],
+            ['name' => 'Produksi', 'code' => 'PRD', 'description' => 'Production and manufacturing department'],
+            ['name' => 'HRD', 'code' => 'HRD', 'description' => 'Human Resources & Development department'],
+            ['name' => 'Keuangan', 'code' => 'FIN', 'description' => 'Finance and accounting operations'],
+            ['name' => 'IT', 'code' => 'IT', 'description' => 'Information Technology department'],
+            ['name' => 'Gudang', 'code' => 'GDG', 'description' => 'Warehouse and inventory management'],
+            ['name' => 'Operasional', 'code' => 'OPS', 'description' => 'Daily operations and logistics'],
         ];
 
         foreach ($departments as $dept) {
