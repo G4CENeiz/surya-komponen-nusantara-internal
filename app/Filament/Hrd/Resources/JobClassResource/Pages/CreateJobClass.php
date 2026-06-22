@@ -3,7 +3,6 @@
 namespace App\Filament\Hrd\Resources\JobClassResource\Pages;
 
 use App\Filament\Hrd\Resources\JobClassResource;
-use Filament\Pages\BasePage;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Width;
 

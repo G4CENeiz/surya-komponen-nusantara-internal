@@ -4,7 +4,6 @@ namespace App\Filament\Hrd\Resources\EmployeeResource\Pages;
 
 use App\Filament\Hrd\Resources\EmployeeResource;
 use Filament\Actions;
-use Filament\Pages\BasePage;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
 
