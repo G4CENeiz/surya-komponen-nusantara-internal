@@ -17,7 +17,7 @@ class JobClassSeeder extends Seeder
                 'min_salary' => 3_500_000,
                 'max_salary' => 5_500_000,
                 'base_allowance' => 500_000,
-                'other_allowances' => 200_000,
+
                 'description' => 'Entry-level staff position',
             ],
             [
@@ -27,7 +27,7 @@ class JobClassSeeder extends Seeder
                 'min_salary' => 5_500_000,
                 'max_salary' => 8_000_000,
                 'base_allowance' => 800_000,
-                'other_allowances' => 300_000,
+
                 'description' => 'Experienced staff with additional responsibilities',
             ],
             [
@@ -37,7 +37,7 @@ class JobClassSeeder extends Seeder
                 'min_salary' => 8_000_000,
                 'max_salary' => 12_000_000,
                 'base_allowance' => 1_200_000,
-                'other_allowances' => 500_000,
+
                 'description' => 'Team supervisor with management duties',
             ],
             [
@@ -47,7 +47,7 @@ class JobClassSeeder extends Seeder
                 'min_salary' => 12_000_000,
                 'max_salary' => 18_000_000,
                 'base_allowance' => 2_000_000,
-                'other_allowances' => 800_000,
+
                 'description' => 'Department manager',
             ],
             [
@@ -57,7 +57,7 @@ class JobClassSeeder extends Seeder
                 'min_salary' => 18_000_000,
                 'max_salary' => 25_000_000,
                 'base_allowance' => 3_000_000,
-                'other_allowances' => 1_000_000,
+
                 'description' => 'Senior manager overseeing multiple teams',
             ],
             [
@@ -67,7 +67,7 @@ class JobClassSeeder extends Seeder
                 'min_salary' => 25_000_000,
                 'max_salary' => 40_000_000,
                 'base_allowance' => 5_000_000,
-                'other_allowances' => 2_000_000,
+
                 'description' => 'Director-level executive',
             ],
         ];

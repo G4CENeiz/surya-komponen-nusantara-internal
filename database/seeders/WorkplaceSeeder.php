@@ -17,8 +17,6 @@ class WorkplaceSeeder extends Seeder
                 'latitude' => -6.22689000,
                 'longitude' => 106.81473000,
                 'radius_meters' => 100,
-                'work_start' => '08:00:00',
-                'work_end' => '17:00:00',
                 'is_active' => true,
             ],
             [
@@ -28,8 +26,6 @@ class WorkplaceSeeder extends Seeder
                 'latitude' => -6.91746000,
                 'longitude' => 107.61912000,
                 'radius_meters' => 100,
-                'work_start' => '08:00:00',
-                'work_end' => '17:00:00',
                 'is_active' => true,
             ],
             [
@@ -39,8 +35,6 @@ class WorkplaceSeeder extends Seeder
                 'latitude' => -7.25747000,
                 'longitude' => 112.75209000,
                 'radius_meters' => 150,
-                'work_start' => '08:00:00',
-                'work_end' => '17:00:00',
                 'is_active' => true,
             ],
             [
@@ -50,8 +44,6 @@ class WorkplaceSeeder extends Seeder
                 'latitude' => -6.96661000,
                 'longitude' => 110.41967000,
                 'radius_meters' => 200,
-                'work_start' => '07:00:00',
-                'work_end' => '16:00:00',
                 'is_active' => true,
             ],
         ];
