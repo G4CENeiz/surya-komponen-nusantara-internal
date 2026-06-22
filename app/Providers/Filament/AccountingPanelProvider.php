@@ -11,6 +11,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -60,6 +61,10 @@ class AccountingPanelProvider extends PanelProvider
             ->plugins([
                 // Removed FilamentShieldPlugin so it doesn't show the Roles menu in Accounting
             ])
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn () => view('filament.components.panel-switcher'),
+            )
             ->authMiddleware([
                 Authenticate::class,
             ]);
