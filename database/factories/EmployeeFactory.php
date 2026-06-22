@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Department;
 use App\Models\Employee;
-use App\Models\JobClass;
 use App\Models\User;
 use App\Models\WorkLocation;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,23 +19,62 @@ class EmployeeFactory extends Factory
     {
         static::$nik++;
 
+        $faker = \Faker\Factory::create('id_ID');
+
+        // Weighted department: 70% Produksi
+        $departments = ['Produksi', 'HRD', 'Keuangan', 'IT', 'Gudang', 'Operasional'];
+        $departmentWeights = [70, 5, 5, 5, 5, 10];
+        $departmentIndex = $this->weightedRandom($departmentWeights);
+        $departmentName = $departments[$departmentIndex];
+
+        // Weighted status: 90% active
+        $status = $faker->optional(0.9, 'inactive')->randomElement(['active']);
+
+        // Realistic coordinates around Jakarta/Surabaya
+        $locations = [
+            ['lat' => -6.2088, 'lng' => 106.8456], // Jakarta
+            ['lat' => -6.1751, 'lng' => 106.8650], // Jakarta Selatan
+            ['lat' => -6.9175, 'lng' => 107.6191], // Bandung
+            ['lat' => -7.2575, 'lng' => 112.7521], // Surabaya
+            ['lat' => -6.5944, 'lng' => 106.7892], // Bogor
+        ];
+        $location = $faker->randomElement($locations);
+
         return [
             'user_id' => User::factory(),
-            'nik' => 'NIK-'.str_pad(static::$nik, 5, '0', STR_PAD_LEFT),
-            'full_name' => fake()->name(),
-            'place_of_birth' => fake()->city(),
-            'date_of_birth' => fake()->dateTimeBetween('-40 years', '-22 years'),
-            'gender' => fake()->randomElement(['male', 'female']),
-            'phone' => fake()->phoneNumber(),
-            'address' => fake()->address(),
-            'office_email' => fake()->safeEmail(),
-            'department_id' => Department::factory(),
-            'job_class_id' => JobClass::factory(),
-            'work_location_id' => WorkLocation::factory(),
-            'hire_date' => fake()->dateTimeBetween('-5 years', 'now'),
-            'status' => 'active',
-            'base_salary' => fake()->numberBetween(3000000, 15000000),
+            'nik' => $faker->numerify('################'), // 16-digit NIK
+            'full_name' => $faker->name(),
+            'place_of_birth' => $faker->city(),
+            'date_of_birth' => $faker->dateTimeBetween('-40 years', '-22 years'),
+            'gender' => $faker->randomElement(['male', 'female']),
+            'phone' => $faker->phoneNumber(),
+            'address' => $faker->address(),
+            'office_email' => $faker->safeEmail(),
+            'department_id' => Department::where('name', $departmentName)->first()->id ?? Department::factory(),
+            'job_class_id' => $faker->numberBetween(1, 5),
+            'work_location_id' => WorkLocation::inRandomOrder()->first()->id ?? WorkLocation::factory(),
+            'hire_date' => $faker->dateTimeBetween('-5 years', 'now'),
+            'termination_date' => $status === 'inactive' ? $faker->dateTimeBetween('-1 year', 'now') : null,
+            'status' => $status,
+            'face_photo_path' => 'face-references/dummy-face.jpg',
+            'base_salary' => $faker->numberBetween(3000000, 15000000),
         ];
+    }
+
+    private function weightedRandom(array $weights): int
+    {
+        $total = array_sum($weights);
+        $random = mt_rand(1, $total);
+        $cumulative = 0;
+
+        foreach ($weights as $index => $weight) {
+            $cumulative += $weight;
+            if ($random <= $cumulative) {
+                return $index;
+            }
+        }
+
+        return count($weights) - 1;
     }
 
     public function inactive(): static
