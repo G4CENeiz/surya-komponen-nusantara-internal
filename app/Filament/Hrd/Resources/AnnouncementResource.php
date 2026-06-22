@@ -4,6 +4,7 @@ namespace App\Filament\Hrd\Resources;
 
 use App\Filament\Hrd\Resources\AnnouncementResource\Pages;
 use App\Models\Announcement;
+use App\Models\Department;
 use BackedEnum;
 use Filament\Actions;
 use Filament\Forms\Components\DatePicker;
@@ -11,11 +12,11 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class AnnouncementResource extends Resource
@@ -30,17 +31,16 @@ class AnnouncementResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('type', 'announcement');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Select::make('type')
-                    ->options([
-                        'announcement' => 'Announcement',
-                        'assignment' => 'Assignment',
-                    ])
-                    ->required()
-                    ->default('announcement'),
                 TextInput::make('title')
                     ->label('Title')
                     ->required()
@@ -51,28 +51,22 @@ class AnnouncementResource extends Resource
                     ->columnSpanFull(),
                 Select::make('target')
                     ->label('Target Audience')
-                    ->options([
-                        'all' => 'All Employees',
-                        'specific' => 'Specific Employees',
-                    ])
-                    ->required()
-                    ->default('all'),
-                Select::make('created_by')
-                    ->relationship('creator', 'name')
+                    ->options(function () {
+                        $departments = Department::pluck('name', 'id')
+                            ->mapWithKeys(fn ($name, $id) => [$id => $name]);
+
+                        return ['all' => 'All Departments'] + $departments->toArray();
+                    })
                     ->searchable()
                     ->preload()
                     ->required()
-                    ->default(fn () => auth()->id())
-                    ->dehydrated(false),
+                    ->default('all'),
+                DatePicker::make('published_at'),
                 FileUpload::make('attachment_path')
                     ->directory('announcements')
                     ->visibility('public')
                     ->maxSize(10240)
                     ->helperText('Max 10MB. PDF, images, or documents'),
-                Toggle::make('is_active')
-                    ->label('Active')
-                    ->default(true),
-                DatePicker::make('published_at'),
                 DatePicker::make('expired_at'),
             ]);
     }
@@ -81,30 +75,17 @@ class AnnouncementResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('type')
-                    ->label('Type')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'announcement' => 'info',
-                        'assignment' => 'warning',
-                    }),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('target')
                     ->label('Target Audience')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'all' => 'success',
-                        'specific' => 'primary',
-                    }),
-                Tables\Columns\TextColumn::make('creator.name')
-                    ->label('Created By')
+                    ->formatStateUsing(fn (string $state): string => $state === 'all' ? 'All Departments' : Department::find($state)?->name ?? $state)
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
-                    ->boolean(),
+                Tables\Columns\TextColumn::make('department.name')
+                    ->label('Department')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('published_at')
                     ->dateTime()
                     ->sortable(),
@@ -117,16 +98,7 @@ class AnnouncementResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('type')
-                    ->label('Type')
-                    ->options([
-                        'announcement' => 'Announcement',
-                        'assignment' => 'Assignment',
-                    ]),
-                Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
-            ])
+            ->filters([])
             ->actions([
                 Actions\EditAction::make(),
                 Actions\DeleteAction::make(),
