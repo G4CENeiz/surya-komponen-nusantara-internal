@@ -18,27 +18,28 @@ class Attendance extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id',
+        'employee_id',
         'workplace_id',
         'date',
+        'clock_in',
         'clock_in_at',
         'clock_in_lat',
         'clock_in_lng',
         'clock_in_ip',
         'clock_in_photo_path',
-        'clock_in_face_confidence',
         'clock_in_within_geofence',
         'clock_in_method',
+        'clock_out',
         'clock_out_at',
         'clock_out_lat',
         'clock_out_lng',
         'clock_out_ip',
         'clock_out_photo_path',
-        'clock_out_face_confidence',
         'clock_out_within_geofence',
         'clock_out_method',
         'status',
-        'hr_notes',
+        'is_verified',
+        'notes',
         'verified_by',
         'verified_at',
         'worked_hours',
@@ -55,20 +56,22 @@ class Attendance extends Model
     {
         return [
             'date' => 'date',
+            'clock_in' => 'datetime',
             'clock_in_at' => 'datetime',
+            'clock_out' => 'datetime',
             'clock_out_at' => 'datetime',
             'clock_in_within_geofence' => 'boolean',
             'clock_out_within_geofence' => 'boolean',
-            'status' => AttendanceStatus::class,
+            'is_verified' => 'boolean',
             'verified_at' => 'datetime',
             'is_late' => 'boolean',
             'is_early_leave' => 'boolean',
         ];
     }
 
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
 
     public function workplace(): BelongsTo
