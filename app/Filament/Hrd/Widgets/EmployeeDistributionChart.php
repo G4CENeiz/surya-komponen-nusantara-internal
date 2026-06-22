@@ -7,11 +7,26 @@ use Filament\Widgets\ChartWidget;
 
 class EmployeeDistributionChart extends ChartWidget
 {
-    protected ?string $heading = 'Employee Distribution by Department';
+    protected ?string $heading = 'Employees by Department';
 
     protected static ?int $sort = 1;
 
     protected ?string $maxHeight = '300px';
+
+    protected int|string|array $columnSpan = 'half';
+
+    protected ?string $type = 'doughnut';
+
+    private const COLORS = [
+        '#3b82f6', // blue
+        '#22c55e', // green
+        '#f59e0b', // amber
+        '#ef4444', // red
+        '#8b5cf6', // violet
+        '#06b6d4', // cyan
+        '#f97316', // orange
+        '#ec4899', // pink
+    ];
 
     protected function getData(): array
     {
@@ -22,10 +37,11 @@ class EmployeeDistributionChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Employees',
                     'data' => $departments->pluck('employees_count')->toArray(),
-                    'backgroundColor' => '#3b82f6',
-                    'hoverBackgroundColor' => '#2563eb',
+                    'backgroundColor' => array_slice(self::COLORS, 0, $departments->count()),
+                    'hoverBackgroundColor' => array_slice(self::COLORS, 0, $departments->count()),
+                    'borderWidth' => 0,
+                    'hoverOffset' => 8,
                 ],
             ],
             'labels' => $departments->pluck('name')->toArray(),
@@ -34,6 +50,6 @@ class EmployeeDistributionChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'bar';
+        return $this->type ?? 'doughnut';
     }
 }
