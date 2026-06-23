@@ -112,6 +112,10 @@ class LeaveRequestResource extends Resource
                         LeaveType::AnnualLeave => 'info',
                         LeaveType::SickLeave => 'warning',
                         LeaveType::Overtime => 'success',
+                        LeaveType::MaternityLeave => 'primary',
+                        LeaveType::MarriageLeave => 'info',
+                        LeaveType::BereavementLeave => 'danger',
+                        LeaveType::PersonalLeave => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Tanggal')

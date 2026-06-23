@@ -49,6 +49,10 @@ class Submission extends Page implements HasForms
                         'annual_leave' => 'Cuti Tahunan',
                         'sick_leave' => 'Sakit',
                         'overtime' => 'Lembur',
+                        'maternity_leave' => 'Cuti Melahirkan',
+                        'marriage_leave' => 'Cuti Menikah',
+                        'bereavement_leave' => 'Cuti Kematian Keluarga',
+                        'personal_leave' => 'Cuti Pribadi',
                     ])
                     ->native(false)
                     ->live()
@@ -130,6 +134,10 @@ class Submission extends Page implements HasForms
                         ->required()
                         ->options([
                             'annual_leave' => 'Cuti Tahunan',
+                            'maternity_leave' => 'Cuti Melahirkan',
+                            'marriage_leave' => 'Cuti Menikah',
+                            'bereavement_leave' => 'Cuti Kematian Keluarga',
+                            'personal_leave' => 'Cuti Pribadi',
                         ])
                         ->native(false),
                     DatePicker::make('start_date')
