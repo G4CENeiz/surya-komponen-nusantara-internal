@@ -67,6 +67,7 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
 
                     Section::make('Today\'s Leaderboard')
                         ->columnSpan(1)
+                        ->extraAttributes(['style' => 'max-height: 480px; overflow-y: auto;'])
                         ->schema([
                             EmbeddedTable::make(LeaderboardTable::class),
                         ]),
