@@ -2,33 +2,39 @@
 
 namespace App\Filament\Employee\Pages;
 
-use Filament\Pages\Page;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Pages\Page;
+use Filament\Schemas\Schema;
 
 class Payslip extends Page implements HasForms
 {
     use InteractsWithForms;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
 
     protected static ?string $navigationLabel = 'Slip Gaji';
+
     protected static ?int $navigationSort = 4;
-    
+
     protected static ?string $title = 'Slip Gaji & Riwayat';
 
     protected string $view = 'filament.employee.pages.payslip';
 
     public array $gajiList = [];
+
     public ?array $data = [];
+
     public array $gaji = [];
 
     public function mount()
     {
         $employee = auth()->user()->employee;
-        $months = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
+        $months = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
 
         $payslips = \App\Models\Payslip::where('employee_id', $employee?->id)
-            ->where('status', 'published') // Only show published ones
+            ->where('status', 'paid') // Only show paid ones
             ->orderBy('period_year', 'desc')
             ->orderBy('period_month', 'desc')
             ->get();
@@ -37,31 +43,43 @@ class Payslip extends Page implements HasForms
         $options = [];
 
         foreach ($payslips as $ps) {
-            $period = $months[$ps->period_month] . ' ' . $ps->period_year;
+            $period = $months[$ps->period_month].' '.$ps->period_year;
             $options[$period] = $period;
-            
+
             $components = $ps->components_detail ?? [];
-            
+
             // Remove 0 values for cleaner UI
             $potongan = [];
-            if (($components['ded_bpjs_kes'] ?? 0) > 0) $potongan['BPJS Kesehatan'] = $components['ded_bpjs_kes'];
-            if (($components['ded_bpjs_tk'] ?? 0) > 0) $potongan['BPJS Ketenagakerjaan'] = $components['ded_bpjs_tk'];
-            if (($components['ded_pph'] ?? 0) > 0) $potongan['PPh 21'] = $components['ded_pph'];
-            
+            if (($components['ded_bpjs_kes'] ?? 0) > 0) {
+                $potongan['BPJS Kesehatan'] = $components['ded_bpjs_kes'];
+            }
+            if (($components['ded_bpjs_tk'] ?? 0) > 0) {
+                $potongan['BPJS Ketenagakerjaan'] = $components['ded_bpjs_tk'];
+            }
+            if (($components['ded_pph'] ?? 0) > 0) {
+                $potongan['PPh 21'] = $components['ded_pph'];
+            }
+
             $lateLabel = 'Keterlambatan';
             if (($components['late_frequency'] ?? 0) > 0) {
-                $lateLabel .= ' (' . $components['late_frequency'] . 'x)';
+                $lateLabel .= ' ('.$components['late_frequency'].'x)';
             }
-            if (($components['ded_late'] ?? 0) > 0) $potongan[$lateLabel] = $components['ded_late'];
-            if (($components['ded_loan'] ?? 0) > 0) $potongan['Pinjaman / Lainnya'] = $components['ded_loan'];
+            if (($components['ded_late'] ?? 0) > 0) {
+                $potongan[$lateLabel] = $components['ded_late'];
+            }
+            if (($components['ded_loan'] ?? 0) > 0) {
+                $potongan['Pinjaman / Lainnya'] = $components['ded_loan'];
+            }
 
             $pendapatan = ['Gaji Pokok' => $ps->base_salary];
-            
+
             $otLabel = 'Honor Lembur';
             if (($components['overtime_hours'] ?? 0) > 0) {
-                $otLabel .= ' (' . $components['overtime_hours'] . ' Jam)';
+                $otLabel .= ' ('.$components['overtime_hours'].' Jam)';
             }
-            if ($ps->overtime_pay > 0) $pendapatan[$otLabel] = $ps->overtime_pay;
+            if ($ps->overtime_pay > 0) {
+                $pendapatan[$otLabel] = $ps->overtime_pay;
+            }
 
             $this->gajiList[$period] = [
                 'periode' => $period,
@@ -90,15 +108,15 @@ class Payslip extends Page implements HasForms
         $this->form->fill([
             'selectedPeriode' => array_key_first($options),
         ]);
-        
+
         $this->updateGaji();
     }
 
-    public function form(\Filament\Schemas\Schema $form): \Filament\Schemas\Schema
+    public function form(Schema $form): Schema
     {
         return $form
             ->schema([
-                \Filament\Forms\Components\Select::make('selectedPeriode')
+                Select::make('selectedPeriode')
                     ->hiddenLabel()
                     ->options(array_combine(array_keys($this->gajiList), array_keys($this->gajiList)))
                     ->live()
