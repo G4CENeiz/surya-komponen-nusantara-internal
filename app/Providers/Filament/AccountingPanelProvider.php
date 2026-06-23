@@ -30,6 +30,8 @@ class AccountingPanelProvider extends PanelProvider
             ->path('accounting')
             ->viteTheme('resources/css/filament/employee/theme.css')
             ->login()
+            ->brandName('SKN — Dept Keuangan')
+            ->favicon(asset('favicon.ico'))
             ->colors([
                 'primary' => Color::Blue,
             ])
