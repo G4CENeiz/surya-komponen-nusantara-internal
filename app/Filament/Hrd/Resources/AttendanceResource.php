@@ -34,7 +34,7 @@ class AttendanceResource extends Resource
         return $schema
             ->components([
                 Textarea::make('notes')
-                    ->label('HR Notes')
+                    ->label('Catatan HR')
                     ->rows(3)
                     ->placeholder('Add verification notes...'),
             ]);
@@ -45,19 +45,19 @@ class AttendanceResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('employee.full_name')
-                    ->label('Employee')
+                    ->label('Karyawan')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('date')
-                    ->label('Date')
+                    ->label('Tanggal')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('clock_in_at')
-                    ->label('Clock In')
+                    ->label('Jam Masuk')
                     ->dateTime('H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('clock_out_at')
-                    ->label('Clock Out')
+                    ->label('Jam Pulang')
                     ->dateTime('H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
@@ -70,29 +70,29 @@ class AttendanceResource extends Resource
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'pending_hr' => 'Pending HR Review',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
+                        'pending_hr' => 'Menunggu Review HR',
+                        'approved' => 'Disetujui',
+                        'rejected' => 'Ditolak',
                         default => ucfirst((string) $state),
                     }),
                 Tables\Columns\IconColumn::make('is_late')
-                    ->label('Late')
+                    ->label('Terlambat')
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_early_leave')
-                    ->label('Early Leave')
+                    ->label('Pulang Cepat')
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('worked_hours')
-                    ->label('Hours')
+                    ->label('Jam Kerja')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('clock_in_within_geofence')
-                    ->label('In Geo')
+                    ->label('Masuk Geofence')
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('clock_out_within_geofence')
-                    ->label('Out Geo')
+                    ->label('Keluar Geofence')
                     ->boolean()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
@@ -104,17 +104,17 @@ class AttendanceResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        'pending_hr' => 'Pending HR Review',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
+                        'pending_hr' => 'Menunggu Review HR',
+                        'approved' => 'Disetujui',
+                        'rejected' => 'Ditolak',
                     ]),
                 Tables\Filters\Filter::make('date')
                     ->form([
                         DatePicker::make('date_from')
-                            ->label('From')
+                            ->label('Dari')
                             ->native(false),
                         DatePicker::make('date_to')
-                            ->label('To')
+                            ->label('Sampai')
                             ->native(false),
                     ])
                     ->query(function ($query, array $data) {
@@ -125,17 +125,17 @@ class AttendanceResource extends Resource
             ])
             ->actions([
                 Actions\Action::make('approve')
-                    ->label('Approve')
+                    ->label('Setujui')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('Approve Attendance')
-                    ->modalDescription('Mark this attendance record as verified and approved.')
+                    ->modalHeading('Setujui Absensi')
+                    ->modalDescription('Tandai catatan absensi ini sebagai terverifikasi dan disetujui.')
                     ->form([
                         Textarea::make('notes')
-                            ->label('Notes')
+                            ->label('Catatan')
                             ->rows(2)
-                            ->placeholder('Optional notes...'),
+                            ->placeholder('Opsional...'),
                     ])
                     ->action(function (Attendance $record, array $data): void {
                         $record->update([
@@ -149,18 +149,18 @@ class AttendanceResource extends Resource
                     ->visible(fn (Attendance $record): bool => $record->status === 'pending_hr'),
 
                 Actions\Action::make('reject')
-                    ->label('Reject')
+                    ->label('Tolak')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Reject Attendance')
-                    ->modalDescription('Reject this attendance record.')
+                    ->modalHeading('Tolak Absensi')
+                    ->modalDescription('Tolak catatan absensi ini.')
                     ->form([
                         Textarea::make('notes')
-                            ->label('Rejection Reason')
+                            ->label('Alasan Penolakan')
                             ->rows(2)
                             ->required()
-                            ->placeholder('Provide reason...'),
+                            ->placeholder('Berikan alasan...'),
                     ])
                     ->action(function (Attendance $record, array $data): void {
                         $record->update([
@@ -174,26 +174,26 @@ class AttendanceResource extends Resource
                     ->visible(fn (Attendance $record): bool => $record->status !== 'rejected'),
 
                 Actions\Action::make('correct')
-                    ->label('Correct')
+                    ->label('Koreksi')
                     ->icon('heroicon-o-pencil-square')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->modalHeading('Correct Attendance')
-                    ->modalDescription('Submit a correction for this attendance record.')
+                    ->modalHeading('Koreksi Absensi')
+                    ->modalDescription('Ajukan koreksi untuk catatan absensi ini.')
                     ->form([
                         Textarea::make('correction_reason')
-                            ->label('Correction Reason')
+                            ->label('Alasan Koreksi')
                             ->rows(2)
                             ->required()
-                            ->placeholder('Why is this correction needed?'),
+                            ->placeholder('Mengapa koreksi diperlukan?'),
                         Textarea::make('new_clock_in')
-                            ->label('New Clock In (H:i)')
+                            ->label('Jam Masuk Baru (H:i)')
                             ->rows(1)
-                            ->placeholder('e.g. 08:00'),
+                            ->placeholder('contoh: 08:00'),
                         Textarea::make('new_clock_out')
-                            ->label('New Clock Out (H:i)')
+                            ->label('Jam Pulang Baru (H:i)')
                             ->rows(1)
-                            ->placeholder('e.g. 17:00'),
+                            ->placeholder('contoh: 17:00'),
                     ])
                     ->action(function (Attendance $record, array $data): void {
                         $oldData = [

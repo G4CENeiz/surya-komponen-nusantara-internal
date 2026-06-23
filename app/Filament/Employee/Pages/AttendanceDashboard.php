@@ -101,16 +101,16 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
         return Grid::make(2)
             ->schema([
                 // Row 1: Clock In | Clock Out
-                Text::make('Clock In')
+                Text::make('Jam Masuk')
                     ->size(TextSize::ExtraSmall)
                     ->color('gray'),
-                Text::make('Clock Out')
+                Text::make('Jam Pulang')
                     ->size(TextSize::ExtraSmall)
                     ->color('gray'),
 
                 // Row 2: values
                 $isLate
-                    ? Text::make('Late · '.$clockIn)->badge()->color('danger')
+                    ? Text::make('Terlambat · '.$clockIn)->badge()->color('danger')
                     : Text::make($clockIn)->weight(FontWeight::SemiBold),
                 Text::make($clockOut)
                     ->weight(FontWeight::SemiBold),
@@ -140,7 +140,7 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
                     }),
 
                 // Row 5: Hours
-                Text::make('Hours')
+                Text::make('Jam Kerja')
                     ->size(TextSize::ExtraSmall)
                     ->color('gray'),
                 Text::make($hoursText)
@@ -151,16 +151,16 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
     protected function getClockInAction(): Action
     {
         return Action::make('clockIn')
-            ->label('Clock In')
+            ->label('Jam Masuk')
             ->icon('heroicon-m-arrow-right-circle')
             ->color('success')
             ->disabled(fn () => ! $this->canClockIn)
-            ->modalHeading('Clock In')
-            ->modalSubmitActionLabel('Confirm Clock In')
+            ->modalHeading('Jam Masuk')
+            ->modalSubmitActionLabel('Konfirmasi Jam Masuk')
             ->modalContent(view('filament.employee.partials.location-ip-info'))
             ->form([
                 FileUpload::make('face_photo')
-                    ->label('Face Photo')
+                    ->label('Foto Wajah')
                     ->disk('public')
                     ->directory('attendance/face-photos')
                     ->visibility('public')
@@ -211,16 +211,16 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
     protected function getClockOutAction(): Action
     {
         return Action::make('clockOut')
-            ->label('Clock Out')
+            ->label('Jam Pulang')
             ->icon('heroicon-m-arrow-left-circle')
             ->color('danger')
             ->disabled(fn () => ! $this->canClockOut)
-            ->modalHeading('Clock Out')
-            ->modalSubmitActionLabel('Confirm Clock Out')
+            ->modalHeading('Jam Pulang')
+            ->modalSubmitActionLabel('Konfirmasi Jam Pulang')
             ->modalContent(view('filament.employee.partials.location-ip-info'))
             ->form([
                 FileUpload::make('face_photo')
-                    ->label('Face Photo')
+                    ->label('Foto Wajah')
                     ->disk('public')
                     ->directory('attendance/face-photos')
                     ->visibility('public')

@@ -2,13 +2,22 @@
 
 namespace App\Filament\Employee\Pages;
 
+use App\Models\Announcement;
+use App\Models\Assignment;
+use App\Models\Reimbursement;
+use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
 class Information extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-megaphone';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-megaphone';
 
     protected static ?string $navigationLabel = 'Informasi';
+
     protected static ?int $navigationSort = 3;
 
     protected static ?string $title = 'Pusat Informasi';
@@ -18,6 +27,7 @@ class Information extends Page
     protected string $view = 'filament.employee.pages.information';
 
     public array $pengumumanList = [];
+
     public array $penugasanList = [];
 
     public function mount()
@@ -25,7 +35,7 @@ class Information extends Page
         $userId = auth()->id();
 
         // Mengambil data Pengumuman dari Database
-        $this->pengumumanList = \App\Models\Announcement::active()
+        $this->pengumumanList = Announcement::active()
             ->published()
             ->latest('published_at')
             ->get()
@@ -41,7 +51,7 @@ class Information extends Page
             })->toArray();
 
         // Mengambil data Penugasan dari Database
-        $this->penugasanList = \App\Models\Assignment::where('assigned_to', $userId)
+        $this->penugasanList = Assignment::where('assigned_to', $userId)
             ->where('is_active', true)
             ->orderBy('start_date', 'desc')
             ->get()
@@ -56,7 +66,7 @@ class Information extends Page
                     }
                 }
 
-                $reimburse = \App\Models\Reimbursement::where('assignment_id', $task->id)
+                $reimburse = Reimbursement::where('assignment_id', $task->id)
                     ->where('user_id', $userId)
                     ->first();
 
@@ -74,34 +84,34 @@ class Information extends Page
             })->toArray();
     }
 
-    public function viewPengumumanAction(): \Filament\Actions\Action
+    public function viewPengumumanAction(): Action
     {
-        return \Filament\Actions\Action::make('viewPengumuman')
+        return Action::make('viewPengumuman')
             ->modalHeading(fn (array $arguments) => collect($this->pengumumanList)->firstWhere('id', $arguments['id'])['title'] ?? 'Pengumuman')
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Tutup')
             ->modalContent(fn (array $arguments) => view('filament.employee.partials.information-modal', [
-                'pengumuman' => collect($this->pengumumanList)->firstWhere('id', $arguments['id'])
+                'pengumuman' => collect($this->pengumumanList)->firstWhere('id', $arguments['id']),
             ]));
     }
 
-    public function requestReimburseAction(): \Filament\Actions\Action
+    public function requestReimburseAction(): Action
     {
-        return \Filament\Actions\Action::make('requestReimburse')
+        return Action::make('requestReimburse')
             ->label('Reimburse')
-            ->modalHeading('Form Reimbursement')
+            ->modalHeading('Formulir Reimburse')
             ->modalDescription('Silakan unggah bukti kuitansi dan masukkan nominal reimbursement untuk tugas ini.')
             ->form([
-                \Filament\Forms\Components\TextInput::make('amount')
+                TextInput::make('amount')
                     ->label('Nominal Reimburse (Rp)')
                     ->numeric()
                     ->required()
                     ->minValue(100),
-                \Filament\Forms\Components\Textarea::make('notes')
+                Textarea::make('notes')
                     ->label('Keterangan / Tujuan')
                     ->required()
                     ->maxLength(500),
-                \Filament\Forms\Components\FileUpload::make('attachment')
+                FileUpload::make('attachment')
                     ->label('Bukti Kuitansi (PDF Wajib)')
                     ->acceptedFileTypes(['application/pdf'])
                     ->required()
@@ -110,7 +120,7 @@ class Information extends Page
                     ->helperText('Maks 5MB. Hanya format PDF.'),
             ])
             ->action(function (array $data, array $arguments) {
-                $reimbursement = \App\Models\Reimbursement::create([
+                $reimbursement = Reimbursement::create([
                     'user_id' => auth()->id(),
                     'assignment_id' => $arguments['id'],
                     'amount' => $data['amount'],
@@ -119,16 +129,16 @@ class Information extends Page
                     'status' => 'pending',
                 ]);
 
-                if (!empty($data['attachment'])) {
+                if (! empty($data['attachment'])) {
                     $file = is_array($data['attachment']) ? current($data['attachment']) : $data['attachment'];
                     $reimbursement->addMedia($file->getRealPath())
-                                  ->usingName($file->getClientOriginalName())
-                                  ->usingFileName($file->getClientOriginalName())
-                                  ->toMediaCollection('kuitansi');
+                        ->usingName($file->getClientOriginalName())
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection('kuitansi');
                 }
 
-                \Filament\Notifications\Notification::make()
-                    ->title('Reimbursement Diajukan')
+                Notification::make()
+                    ->title('Reimburse Diajukan')
                     ->body('Permintaan reimburse Anda telah dikirim ke Accounting untuk ditinjau.')
                     ->success()
                     ->send();
