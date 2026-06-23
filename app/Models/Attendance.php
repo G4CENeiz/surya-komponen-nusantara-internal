@@ -18,6 +18,7 @@ class Attendance extends Model
      * @var array
      */
     protected $fillable = [
+        'user_id',
         'employee_id',
         'workplace_id',
         'date',
@@ -45,6 +46,8 @@ class Attendance extends Model
         'worked_hours',
         'is_late',
         'is_early_leave',
+        'is_suspicious',
+        'suspicious_reason',
     ];
 
     /**
