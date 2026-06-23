@@ -11,7 +11,7 @@ class AttendanceTrendChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Attendance Trend';
+    protected ?string $heading = 'Tren Kehadiran';
 
     protected static ?int $sort = 4;
 

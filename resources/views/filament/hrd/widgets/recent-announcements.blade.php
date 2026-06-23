@@ -39,7 +39,7 @@
                                 {{ $announcement->type === 'assignment'
                                     ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
                                     : 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400' }}">
-                                {{ ucfirst($announcement->type) }}
+                                {{ $announcement->type === 'assignment' ? 'Penugasan' : 'Pengumuman' }}
                             </span>
                         </div>
                     @endforeach

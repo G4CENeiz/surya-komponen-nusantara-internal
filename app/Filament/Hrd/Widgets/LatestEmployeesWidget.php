@@ -35,6 +35,12 @@ class LatestEmployeesWidget extends TableWidget
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'active' => 'Aktif',
+                        'inactive' => 'Non-aktif',
+                        'on_leave' => 'Cuti',
+                        'sick' => 'Sakit',
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'active' => 'success',
                         'inactive' => 'danger',
