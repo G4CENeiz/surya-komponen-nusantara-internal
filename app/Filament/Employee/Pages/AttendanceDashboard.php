@@ -52,7 +52,7 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
         return $schema->components([
             Grid::make(2)
                 ->schema([
-                    Section::make('Today\'s Attendance')
+                    Section::make('Absensi Hari Ini')
                         ->columnSpan(1)
                         ->schema([
                             Html::make(view('filament.employee.partials.clock')->render()),
@@ -65,7 +65,7 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
                             ])->alignCenter(),
                         ]),
 
-                    Section::make('Today\'s Leaderboard')
+                    Section::make('Leaderboard Hari Ini')
                         ->columnSpan(1)
                         ->extraAttributes(['style' => 'max-height: 480px; overflow-y: auto;'])
                         ->schema([
@@ -287,9 +287,9 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
                     ->badge()
                     ->label('Status')
                     ->formatStateUsing(fn ($state): string => match ($state) {
-                        AttendanceStatus::PendingHr => 'Pending HR',
-                        AttendanceStatus::Approved => 'Approved',
-                        AttendanceStatus::Rejected => 'Rejected',
+                        AttendanceStatus::PendingHr => 'Menunggu HR',
+                        AttendanceStatus::Approved => 'Disetujui',
+                        AttendanceStatus::Rejected => 'Ditolak',
                         default => ucfirst(str_replace('_', ' ', $state->value ?? (string) $state)),
                     })
                     ->color(fn ($state): string => match ($state) {

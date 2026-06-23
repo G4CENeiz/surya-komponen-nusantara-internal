@@ -37,11 +37,11 @@ class LeaderboardTable extends TableWidget
                     ->weight('bold')
                     ->width(50),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name')
+                    ->label('Nama')
                     ->sortable(false)
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('clock_in_at')
-                    ->label('Clock In')
+                    ->label('Jam Masuk')
                     ->dateTime('H:i:s')
                     ->sortable('clock_in_at')
                     ->alignCenter(),

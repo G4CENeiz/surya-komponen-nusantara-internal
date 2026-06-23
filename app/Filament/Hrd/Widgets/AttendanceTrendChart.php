@@ -49,7 +49,7 @@ class AttendanceTrendChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Approved',
+                    'label' => 'Disetujui',
                     'data' => $days->map(fn ($d) => $approvedCounts->get($d, 0))->toArray(),
                     'borderColor' => '#22c55e',
                     'backgroundColor' => 'rgba(34, 197, 94, 0.1)',
@@ -59,7 +59,7 @@ class AttendanceTrendChart extends ChartWidget
                     'pointHoverRadius' => 6,
                 ],
                 [
-                    'label' => 'Rejected',
+                    'label' => 'Ditolak',
                     'data' => $days->map(fn ($d) => $rejectedCounts->get($d, 0))->toArray(),
                     'borderColor' => '#ef4444',
                     'backgroundColor' => 'rgba(239, 68, 68, 0.1)',

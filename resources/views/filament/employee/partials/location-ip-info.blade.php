@@ -1,6 +1,6 @@
 <div
     x-data="{
-        publicIp: 'Detecting...',
+        publicIp: 'Mendeteksi...',
         locationReady: false,
         locationGranted: false,
         init() {
@@ -13,7 +13,7 @@
                 const data = await res.json();
                 this.publicIp = data.ip;
             } catch {
-                this.publicIp = 'Unable to detect';
+                this.publicIp = 'Tidak dapat mendeteksi';
             }
         },
         fetchLocation() {
@@ -47,7 +47,7 @@
             <span class="text-red-500">Location unavailable</span>
         </template>
         <template x-if="!locationReady">
-            <span class="text-amber-500">Detecting location...</span>
+            <span class="text-amber-500">Mendeteksi...cation...</span>
         </template>
     </div>
 </div>

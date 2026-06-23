@@ -40,7 +40,7 @@ class AttendanceService
         if ($existing && $existing->clock_in_at) {
             return [
                 'success' => false,
-                'message' => 'You have already clocked in today.',
+                'message' => 'Anda sudah melakukan clock in hari ini.',
             ];
         }
 
@@ -120,11 +120,11 @@ class AttendanceService
         });
 
         $message = $withinGeofence
-            ? 'Clock in successful. Awaiting HR verification.'
-            : 'Clock in recorded but you are outside the workplace geofence. This will be flagged for HR review.';
+            ? 'Clock in berhasil. Menunggu verifikasi HR.'
+            : 'Clock in tercatat tetapi Anda berada di luar geofence kantor. Akan ditandai untuk review HR.';
 
         if (! empty($spoofingIndicators)) {
-            $message .= ' ⚠️ GPS anomaly detected.';
+            $message .= ' ⚠️ Anomali GPS terdeteksi.';
         }
 
         return [
@@ -156,14 +156,14 @@ class AttendanceService
         if (! $attendance || ! $attendance->clock_in_at) {
             return [
                 'success' => false,
-                'message' => 'You have not clocked in today.',
+                'message' => 'Anda belum melakukan clock in hari ini.',
             ];
         }
 
         if ($attendance->clock_out_at) {
             return [
                 'success' => false,
-                'message' => 'You have already clocked out today.',
+                'message' => 'Anda sudah melakukan clock out hari ini.',
             ];
         }
 
@@ -239,10 +239,10 @@ class AttendanceService
             $attendance->refresh();
         });
 
-        $message = 'Clock out successful. Awaiting HR verification.';
+        $message = 'Clock out berhasil. Menunggu verifikasi HR.';
 
         if (! $withinGeofence) {
-            $message = 'Clock out recorded but you are outside the workplace geofence. Flagged for HR review.';
+            $message = 'Clock out tercatat tetapi Anda berada di luar geofence kantor. Ditandai untuk review HR.';
         }
 
         return [

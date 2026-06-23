@@ -336,7 +336,7 @@ class Payroll extends Page implements HasForms
                 'reimburse' => $reimburseTotal,
                 'deductions' => $totalDeduction,
                 'thp' => $thp,
-                'status' => $payslip ? ucfirst($payslip->status) : 'Draft',
+                'status' => $payslip ? ucfirst($payslip->status) : 'Draf',
                 'ded_bpjs_kes' => $bpjsKes,
                 'ded_bpjs_tk' => $bpjsTk,
                 'ded_pph' => $pph21,

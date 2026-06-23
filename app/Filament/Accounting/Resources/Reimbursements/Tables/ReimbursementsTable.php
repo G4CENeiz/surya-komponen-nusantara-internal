@@ -21,7 +21,7 @@ class ReimbursementsTable
                     ->label('Dept')
                     ->searchable(),
                 TextColumn::make('user.employee.jobClass.name')
-                    ->label('Role')
+                    ->label('Jabatan')
                     ->searchable(),
                 TextColumn::make('assignment.title')
                     ->label('Tugas')
@@ -105,7 +105,7 @@ class ReimbursementsTable
                     }),
 
                 \Filament\Actions\Action::make('reject')
-                    ->label('Reject')
+                    ->label('Tolak')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->form([

@@ -71,10 +71,10 @@ class EmployeeResource extends Resource
                                     Select::make('status')
                                         ->label('Status Kelahiran')
                                         ->options([
-                                            'active' => 'Active',
-                                            'inactive' => 'Inactive',
-                                            'on_leave' => 'On Leave',
-                                            'sick' => 'Sick',
+                                            'active' => 'Aktif',
+                                            'inactive' => 'Non-aktif',
+                                            'on_leave' => 'Cuti',
+                                            'sick' => 'Sakit',
                                         ])
                                         ->required()
                                         ->default('active'),

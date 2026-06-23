@@ -55,7 +55,7 @@ class AnnouncementResource extends Resource
                         $departments = Department::pluck('name', 'id')
                             ->mapWithKeys(fn ($name, $id) => [$id => $name]);
 
-                        return ['all' => 'All Departments'] + $departments->toArray();
+                        return ['all' => 'Semua Departemen'] + $departments->toArray();
                     })
                     ->searchable()
                     ->preload()
@@ -81,7 +81,7 @@ class AnnouncementResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('target')
                     ->label('Target Audiens')
-                    ->formatStateUsing(fn (string $state): string => $state === 'all' ? 'All Departments' : Department::find($state)?->name ?? $state)
+                    ->formatStateUsing(fn (string $state): string => $state === 'all' ? 'Semua Departemen' : Department::find($state)?->name ?? $state)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('department.name')
                     ->label('Departemen')

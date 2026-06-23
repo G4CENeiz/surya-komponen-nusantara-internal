@@ -32,7 +32,7 @@ class DeepFaceService
         if ($response->failed()) {
             return [
                 'success' => false,
-                'message' => 'Face verification failed: '.$response->body(),
+                'message' => Verifikasi wajah gagal: '.$response->body(),
             ];
         }
 
@@ -62,7 +62,7 @@ class DeepFaceService
         if ($response->failed()) {
             return [
                 'success' => false,
-                'message' => 'Face representation failed: '.$response->body(),
+                'message' => Representasi wajah gagal: '.$response->body(),
             ];
         }
 
@@ -91,7 +91,7 @@ class DeepFaceService
         if ($response->failed()) {
             return [
                 'success' => false,
-                'message' => 'Face analysis failed: '.$response->body(),
+                'message' => Analisis wajah gagal: '.$response->body(),
             ];
         }
 
@@ -119,7 +119,7 @@ class DeepFaceService
         if ($response->failed()) {
             return [
                 'success' => false,
-                'message' => 'Face extraction failed: '.$response->body(),
+                'message' => Ekstraksi wajah gagal: '.$response->body(),
             ];
         }
 
@@ -154,7 +154,7 @@ class DeepFaceService
             'threshold' => $threshold,
             'confidence' => max(0, 1 - $distance),
             'message' => $result['verified']
-                ? 'Face verified successfully.'
+                ? 'Wajah terverifikasi successfully.'
                 : 'Face does not match registered photo.',
         ];
     }

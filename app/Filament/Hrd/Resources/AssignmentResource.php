@@ -38,15 +38,15 @@ class AssignmentResource extends Resource
         return $schema
             ->components([
                 TextInput::make('title')
-                    ->label('Title')
+                    ->label('Judul')
                     ->required()
                     ->maxLength(255),
                 RichEditor::make('description')
-                    ->label('Description & Instructions')
+                    ->label('Deskripsi & Instruksi')
                     ->required()
                     ->columnSpanFull(),
                 Select::make('department_filter')
-                    ->label('Filter by Department')
+                    ->label('Filter per Departemen')
                     ->options(fn () => Department::pluck('name', 'id'))
                     ->searchable()
                     ->preload()
@@ -54,7 +54,7 @@ class AssignmentResource extends Resource
                     ->afterStateUpdated(fn ($state, $set) => $set('assigned_to', null))
                     ->dehydrated(false),
                 Select::make('assigned_to')
-                    ->label('Assigned To')
+                    ->label('Ditugaskan Ke')
                     ->options(fn (callable $get) => Employee::query()
                         ->with('user')
                         ->when($get('department_filter'), fn ($query, $deptId) => $query->where('department_id', $deptId))
@@ -63,13 +63,13 @@ class AssignmentResource extends Resource
                     ->searchable()
                     ->required(),
                 DatePicker::make('start_date')
-                    ->label('Start Date')
+                    ->label('Tanggal Mulai')
                     ->required(),
                 DatePicker::make('end_date')
-                    ->label('End Date')
+                    ->label('Tanggal Selesai')
                     ->required(),
                 Textarea::make('notes')
-                    ->label('Notes')
+                    ->label('Catatan')
                     ->rows(3)
                     ->placeholder('Catatan atau komentar tambahan...'),
             ]);
@@ -80,22 +80,22 @@ class AssignmentResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Title')
+                    ->label('Judul')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('assignee.name')
-                    ->label('Assigned To')
+                    ->label('Ditugaskan Ke')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('creator.name')
-                    ->label('Created By')
+                    ->label('Dibuat Oleh')
                     ->placeholder('Tidak Diketahui')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('start_date')
-                    ->label('Start Date')
+                    ->label('Tanggal Mulai')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('end_date')
-                    ->label('End Date')
+                    ->label('Tanggal Selesai')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

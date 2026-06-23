@@ -71,7 +71,7 @@ class WorkLocationResource extends Resource
                             ->defaultLatLng(-6.22689, 106.81473)
                             ->columnSpanFull(),
                         Checkbox::make('is_active')
-                            ->label('Active')
+                            ->label('Aktif')
                             ->default(true),
                     ]),
             ]);
@@ -99,7 +99,7 @@ class WorkLocationResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('employees_count')
                     ->counts('employees')
-                    ->label('Employees')
+                    ->label('Karyawan')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -108,7 +108,7 @@ class WorkLocationResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label('Aktif'),
             ])
             ->actions([
                 Actions\EditAction::make(),
