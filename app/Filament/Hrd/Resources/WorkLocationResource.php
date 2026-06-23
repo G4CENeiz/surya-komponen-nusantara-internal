@@ -63,12 +63,12 @@ class WorkLocationResource extends Resource
                             ->default(106.81473),
                         Slider::make('radius_meters')
                             ->label('Radius Geofence (meter)')
-                            ->min(10)
-                            ->max(100)
-                            ->step(1)
+                            ->minValue(10)
+                            ->maxValue(100)
                             ->default(100)
                             ->suffix('m')
                             ->live()
+                            ->tooltips()
                             ->displayValue(fn ($state): string => $state . ' m')
                             ->dehydrated(),
                         LeafletMap::make('geofence_map')
