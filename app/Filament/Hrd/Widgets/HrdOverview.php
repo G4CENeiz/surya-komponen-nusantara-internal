@@ -5,6 +5,7 @@ namespace App\Filament\Hrd\Widgets;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use App\Models\Overtime;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -56,10 +57,7 @@ class HrdOverview extends StatsOverviewWidget
             ->count();
 
         // Overtime today
-        $onOvertime = LeaveRequest::where('status', 'approved')
-            ->where('type', 'overtime')
-            ->where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today)
+        $onOvertime = Overtime::where('date', $today)
             ->count();
 
         // Pending leave requests

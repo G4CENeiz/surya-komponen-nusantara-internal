@@ -33,7 +33,6 @@ class HrdPanelProvider extends PanelProvider
             ->login()
             ->brandName('SKN — HRD Panel')
             ->favicon(asset('favicon.ico'))
-            ->darkMode()
             ->colors([
                 'primary' => Color::Blue,
             ])

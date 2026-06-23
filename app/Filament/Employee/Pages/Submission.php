@@ -2,23 +2,29 @@
 
 namespace App\Filament\Employee\Pages;
 
-use Filament\Pages\Page;
+use App\Enums\LeaveStatus;
+use App\Enums\LeaveType;
+use App\Models\LeaveRequest;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Notifications\Notification;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Schemas\Schema;
 
 class Submission extends Page implements HasForms
 {
     use InteractsWithForms;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-plus';
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-plus';
 
     protected static ?string $navigationLabel = 'Pengajuan';
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $title = 'Pengajuan Karyawan';
@@ -26,6 +32,7 @@ class Submission extends Page implements HasForms
     protected string $view = 'filament.employee.pages.submission';
 
     public $searchQuery = '';
+
     public ?array $filterData = [];
 
     public function mount()
@@ -33,15 +40,15 @@ class Submission extends Page implements HasForms
         $this->form->fill();
     }
 
-    public function form(\Filament\Schemas\Schema $form): \Filament\Schemas\Schema
+    public function form(Schema $form): Schema
     {
         return $form
             ->schema([
-                \Filament\Forms\Components\Select::make('type')
+                Select::make('type')
                     ->options([
-                        'Cuti Tahunan' => 'Cuti Tahunan',
-                        'Lembur' => 'Lembur',
-                        'Sakit' => 'Sakit',
+                        'annual_leave' => 'Cuti Tahunan',
+                        'sick_leave' => 'Sakit',
+                        'overtime' => 'Lembur',
                     ])
                     ->native(false)
                     ->live()
@@ -49,7 +56,7 @@ class Submission extends Page implements HasForms
                     ->hiddenLabel()
                     ->extraAttributes(['class' => 'w-full sm:w-48']),
 
-                \Filament\Forms\Components\Select::make('status')
+                Select::make('status')
                     ->options([
                         'pending' => 'Menunggu',
                         'approved' => 'Disetujui',
@@ -67,52 +74,46 @@ class Submission extends Page implements HasForms
 
     public function getPengajuanListProperty()
     {
-        $userId = auth()->id() ?? 1; // Fallback for dev if not logged in
+        $userId = auth()->id();
 
-        $timeOffs = \App\Models\TimeOff::where('user_id', $userId)->get()->map(function($t) {
+        $requests = LeaveRequest::where('user_id', $userId)->get()->map(function ($lr) {
+            $typeLabel = match ($lr->type) {
+                LeaveType::AnnualLeave => 'Cuti Tahunan',
+                LeaveType::SickLeave => 'Sakit',
+                LeaveType::Overtime => 'Lembur',
+                default => (string) $lr->type,
+            };
+
             return [
-                'id' => 'TO-' . str_pad($t->id, 4, '0', STR_PAD_LEFT),
-                'real_id' => $t->id,
-                'source' => 'time_off',
-                'date' => $t->start_date ? $t->start_date->format('Y-m-d') : null,
-                'type' => $t->type,
-                'desc' => $t->reason,
-                'status' => $t->status,
-                'attachment' => $t->attachment_path,
+                'id' => 'LR-'.str_pad($lr->id, 4, '0', STR_PAD_LEFT),
+                'real_id' => $lr->id,
+                'source' => 'leave_request',
+                'date' => $lr->start_date ? $lr->start_date->format('Y-m-d') : null,
+                'type' => $typeLabel,
+                'type_value' => $lr->type instanceof LeaveType ? $lr->type->value : $lr->type,
+                'desc' => $lr->reason,
+                'status' => $lr->status instanceof LeaveStatus ? $lr->status->value : $lr->status,
+                'attachment' => $lr->attachment_path,
+                'hr_notes' => $lr->hr_notes,
             ];
         });
 
-        $overtimes = \App\Models\Overtime::where('user_id', $userId)->get()->map(function($o) {
-            return [
-                'id' => 'OT-' . str_pad($o->id, 4, '0', STR_PAD_LEFT),
-                'real_id' => $o->id,
-                'source' => 'overtime',
-                'date' => $o->date ? $o->date->format('Y-m-d') : null,
-                'type' => 'Lembur',
-                'desc' => $o->reason,
-                'status' => $o->status,
-                'attachment' => null,
-            ];
-        });
-
-        $all = $timeOffs->concat($overtimes);
-
-        if (!empty($this->searchQuery)) {
+        if (! empty($this->searchQuery)) {
             $search = strtolower($this->searchQuery);
-            $all = $all->filter(function($item) use ($search) {
+            $requests = $requests->filter(function ($item) use ($search) {
                 return str_contains(strtolower($item['id']), $search) || str_contains(strtolower($item['desc']), $search);
             });
         }
 
-        if (!empty($this->filterData['type'])) {
-            $all = $all->filter(fn($item) => $item['type'] === $this->filterData['type']);
+        if (! empty($this->filterData['type'])) {
+            $requests = $requests->filter(fn ($item) => $item['type_value'] === $this->filterData['type']);
         }
 
-        if (!empty($this->filterData['status'])) {
-            $all = $all->filter(fn($item) => $item['status'] === $this->filterData['status']);
+        if (! empty($this->filterData['status'])) {
+            $requests = $requests->filter(fn ($item) => $item['status'] === $this->filterData['status']);
         }
 
-        return $all->sortByDesc('date')->values();
+        return $requests->sortByDesc('date')->values();
     }
 
     protected function getHeaderActions(): array
@@ -124,14 +125,11 @@ class Submission extends Page implements HasForms
                 ->modalHeading('Formulir Pengajuan Cuti')
                 ->modalSubmitActionLabel('Kirim Pengajuan')
                 ->form([
-                    \Filament\Forms\Components\Select::make('type')
+                    Select::make('type')
                         ->label('Jenis Cuti')
                         ->required()
                         ->options([
-                            'Cuti Tahunan' => 'Tahunan',
-                            'Cuti Melahirkan' => 'Melahirkan',
-                            'Cuti Khusus' => 'Khusus',
-                            'Lainnya' => 'Lainnya',
+                            'annual_leave' => 'Cuti Tahunan',
                         ])
                         ->native(false),
                     DatePicker::make('start_date')
@@ -147,13 +145,13 @@ class Submission extends Page implements HasForms
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
-                    \App\Models\TimeOff::create([
-                        'user_id' => auth()->id() ?? 1,
-                        'type' => $data['type'],
+                    LeaveRequest::create([
+                        'user_id' => auth()->id(),
+                        'type' => LeaveType::AnnualLeave,
                         'start_date' => $data['start_date'],
                         'end_date' => $data['end_date'],
                         'reason' => $data['reason'],
-                        'status' => 'pending',
+                        'status' => LeaveStatus::Pending,
                     ]);
 
                     Notification::make()
@@ -168,7 +166,7 @@ class Submission extends Page implements HasForms
                 ->modalHeading('Formulir Pengajuan Lembur')
                 ->modalSubmitActionLabel('Kirim Pengajuan')
                 ->form([
-                    DatePicker::make('date')
+                    DatePicker::make('start_date')
                         ->label('Tanggal Lembur')
                         ->required(),
                     TimePicker::make('start_time')
@@ -184,18 +182,15 @@ class Submission extends Page implements HasForms
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
-                    $start = \Carbon\Carbon::parse($data['start_time']);
-                    $end = \Carbon\Carbon::parse($data['end_time']);
-                    $duration = $end->diffInMinutes($start);
-
-                    \App\Models\Overtime::create([
-                        'user_id' => auth()->id() ?? 1,
-                        'date' => $data['date'],
+                    LeaveRequest::create([
+                        'user_id' => auth()->id(),
+                        'type' => LeaveType::Overtime,
+                        'start_date' => $data['start_date'],
+                        'end_date' => $data['start_date'],
                         'start_time' => $data['start_time'],
                         'end_time' => $data['end_time'],
-                        'duration_minutes' => $duration,
                         'reason' => $data['reason'],
-                        'status' => 'pending',
+                        'status' => LeaveStatus::Pending,
                     ]);
 
                     Notification::make()
@@ -226,14 +221,14 @@ class Submission extends Page implements HasForms
                         ->maxSize(5120),
                 ])
                 ->action(function (array $data) {
-                    \App\Models\TimeOff::create([
-                        'user_id' => auth()->id() ?? 1,
-                        'type' => 'Sakit',
+                    LeaveRequest::create([
+                        'user_id' => auth()->id(),
+                        'type' => LeaveType::SickLeave,
                         'start_date' => $data['start_date'],
                         'end_date' => $data['end_date'],
                         'reason' => 'Sakit',
                         'attachment_path' => $data['attachment_path'],
-                        'status' => 'pending',
+                        'status' => LeaveStatus::Pending,
                     ]);
 
                     Notification::make()

@@ -28,9 +28,10 @@ class Payslip extends Page implements HasForms
 
     public array $gaji = [];
 
-    public function mount()
+    public function mount(): void
     {
-        $employee = auth()->user()->employee;
+        $user = auth()->user();
+        $employee = $user?->employee;
         $months = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
 
         $payslips = \App\Models\Payslip::where('employee_id', $employee?->id)

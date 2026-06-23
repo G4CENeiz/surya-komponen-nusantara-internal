@@ -75,11 +75,6 @@ class Employee extends Model
         return $this->belongsTo(Workplace::class);
     }
 
-    public function submissions(): HasMany
-    {
-        return $this->hasMany(Submission::class);
-    }
-
     public function attendances(): HasManyThrough
     {
         return $this->hasManyThrough(Attendance::class, User::class);

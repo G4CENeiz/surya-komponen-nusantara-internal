@@ -2,8 +2,7 @@
 
 namespace App\Filament\Accounting\Widgets;
 
-use App\Models\Payroll;
-use App\Models\PayrollPeriod;
+use App\Models\Payslip;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -13,22 +12,21 @@ class AccountingStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $currentPeriod = PayrollPeriod::where('month', now()->month)
-            ->where('year', now()->year)
-            ->first();
+        $payslips = Payslip::where('period_month', now()->month)
+            ->where('period_year', now()->year)
+            ->get();
 
-        $payrolls = $currentPeriod ? Payroll::where('payroll_period_id', $currentPeriod->id)->get() : collect();
-
-        $totalBaseSalary = $payrolls->sum('base_salary');
-        $totalOvertimePay = $payrolls->sum('overtime_pay');
-        $totalDeductions = $payrolls->sum(fn ($p) => $p->bpjs_health + $p->bpjs_employment + $p->pph21 + $p->tardiness_deduction + $p->other_deductions);
-        $totalTHP = $payrolls->sum('take_home_pay');
-        $employeeCount = $payrolls->count();
+        $totalBaseSalary = $payslips->sum('base_salary');
+        $totalOvertimePay = $payslips->sum('overtime_pay');
+        $totalAllowance = $payslips->sum('total_allowance');
+        $totalDeductions = $payslips->sum('total_deduction');
+        $totalTHP = $payslips->sum('net_salary');
+        $employeeCount = $payslips->count();
 
         return [
-            Stat::make('Periode Aktif', $currentPeriod?->name ?? 'Belum ada')
-                ->description($currentPeriod ? "{$employeeCount} pegawai" : 'Buat periode terlebih dahulu')
-                ->descriptionIcon('heroicon-m-calendar')
+            Stat::make('Total Slip Gaji', $employeeCount)
+                ->description('Periode '.now()->translatedFormat('F Y'))
+                ->descriptionIcon('heroicon-m-document-text')
                 ->color('info'),
 
             Stat::make('Total Gaji Pokok', 'Rp '.number_format($totalBaseSalary, 0, ',', '.'))
@@ -36,8 +34,8 @@ class AccountingStatsOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('primary'),
 
-            Stat::make('Total Honor Lembur', 'Rp '.number_format($totalOvertimePay, 0, ',', '.'))
-                ->description('Lembur tervalidasi')
+            Stat::make('Total Tunjangan + Lembur', 'Rp '.number_format($totalAllowance + $totalOvertimePay, 0, ',', '.'))
+                ->description('Tunjangan: Rp '.number_format($totalAllowance, 0, ',', '.'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('success'),
 

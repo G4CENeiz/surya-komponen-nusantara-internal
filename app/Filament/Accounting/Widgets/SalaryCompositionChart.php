@@ -2,8 +2,7 @@
 
 namespace App\Filament\Accounting\Widgets;
 
-use App\Models\Payroll;
-use App\Models\PayrollPeriod;
+use App\Models\Payslip;
 use Filament\Widgets\ChartWidget;
 
 class SalaryCompositionChart extends ChartWidget
@@ -14,29 +13,38 @@ class SalaryCompositionChart extends ChartWidget
 
     protected function getData(): array
     {
-        $currentPeriod = PayrollPeriod::where('month', now()->month)
-            ->where('year', now()->year)
-            ->first();
+        $payslips = Payslip::where('period_month', now()->month)
+            ->where('period_year', now()->year)
+            ->get();
 
-        if (! $currentPeriod) {
+        if ($payslips->isEmpty()) {
             return [
                 'datasets' => [['data' => []]],
                 'labels' => [],
             ];
         }
 
-        $payrolls = Payroll::where('payroll_period_id', $currentPeriod->id)->get();
+        // Build deductions from components_detail
+        $totalBpjs = 0;
+        $totalPph = 0;
+        $totalLate = 0;
+        foreach ($payslips as $ps) {
+            $detail = $ps->components_detail ?? [];
+            $totalBpjs += ($detail['ded_bpjs_kes'] ?? 0) + ($detail['ded_bpjs_tk'] ?? 0);
+            $totalPph += $detail['ded_pph'] ?? 0;
+            $totalLate += $detail['ded_late'] ?? 0;
+        }
 
         return [
             'datasets' => [
                 [
                     'data' => [
-                        $payrolls->sum('base_salary'),
-                        $payrolls->sum('allowance'),
-                        $payrolls->sum('overtime_pay'),
-                        $payrolls->sum('bpjs_health') + $payrolls->sum('bpjs_employment'),
-                        $payrolls->sum('pph21'),
-                        $payrolls->sum('tardiness_deduction'),
+                        $payslips->sum('base_salary'),
+                        $payslips->sum('total_allowance'),
+                        $payslips->sum('overtime_pay'),
+                        $totalBpjs,
+                        $totalPph,
+                        $totalLate,
                     ],
                     'backgroundColor' => [
                         '#3b82f6',
