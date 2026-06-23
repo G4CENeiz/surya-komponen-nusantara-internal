@@ -6,7 +6,6 @@ use App\Filament\Hrd\Pages\HrdDashboard;
 use App\Filament\Hrd\Widgets\EmployeeDistributionChart;
 use App\Filament\Hrd\Widgets\HrdOverview;
 use App\Filament\Hrd\Widgets\LatestEmployeesWidget;
-use App\Filament\Hrd\Widgets\PendingSubmissionsWidget;
 use App\Filament\Hrd\Widgets\RecentAnnouncementsWidget;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -52,7 +51,6 @@ class HrdPanelProvider extends PanelProvider
                 HrdOverview::class,
                 EmployeeDistributionChart::class,
                 LatestEmployeesWidget::class,
-                PendingSubmissionsWidget::class,
                 RecentAnnouncementsWidget::class,
             ])
             ->middleware([
