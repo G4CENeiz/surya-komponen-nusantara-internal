@@ -66,7 +66,6 @@ class WorkLocationResource extends Resource
                             ->minValue(10)
                             ->maxValue(100)
                             ->default(100)
-                            ->suffix('m')
                             ->live()
                             ->tooltips()
                             ->displayValue(fn ($state): string => $state . ' m')
