@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Actions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -62,22 +63,12 @@ class EmployeeResource extends Resource
                                         ])
                                         ->required(),
                                 ]),
-                            Grid::make(3)
+                            Grid::make(2)
                                 ->schema([
                                     TextInput::make('place_of_birth')
                                         ->maxLength(255)
                                         ->placeholder('Kota kelahiran'),
                                     DatePicker::make('date_of_birth'),
-                                    Select::make('status')
-                                        ->label('Status Kelahiran')
-                                        ->options([
-                                            'active' => 'Aktif',
-                                            'inactive' => 'Non-aktif',
-                                            'on_leave' => 'Cuti',
-                                            'sick' => 'Sakit',
-                                        ])
-                                        ->required()
-                                        ->default('active'),
                                 ]),
                             Grid::make(2)
                                 ->schema([
@@ -129,6 +120,15 @@ class EmployeeResource extends Resource
                                         ->required(),
                                     DatePicker::make('termination_date'),
                                 ]),
+                            Radio::make('status')
+                                ->label('Status')
+                                ->options([
+                                    'active' => 'Aktif',
+                                    'inactive' => 'Non-aktif',
+                                ])
+                                ->required()
+                                ->default('active')
+                                ->inline(),
 
                             // ── Shift Section (Production/Warehouse/Operations only) ──
                             Grid::make(3)
@@ -229,11 +229,14 @@ class EmployeeResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
+                    ->formatStateUsing(fn ($state): string => match ($state) {
+                        'active' => 'Aktif',
+                        'inactive' => 'Non-aktif',
+                        default => ucfirst($state),
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'active' => 'success',
                         'inactive' => 'danger',
-                        'on_leave' => 'warning',
-                        'sick' => 'info',
                     }),
                 Tables\Columns\TextColumn::make('hire_date')
                     ->date()
@@ -249,8 +252,6 @@ class EmployeeResource extends Resource
                     ->options([
                         'active' => 'Aktif',
                         'inactive' => 'Non-aktif',
-                        'on_leave' => 'Cuti',
-                        'sick' => 'Sakit',
                     ]),
                 Tables\Filters\SelectFilter::make('department_id')
                     ->relationship('department', 'name')
