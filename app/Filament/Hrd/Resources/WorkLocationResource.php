@@ -9,7 +9,6 @@ use BackedEnum;
 use Filament\Actions;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Slider;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -61,14 +60,9 @@ class WorkLocationResource extends Resource
                         Hidden::make('longitude')
                             ->dehydrated()
                             ->default(106.81473),
-                        Slider::make('radius_meters')
-                            ->label('Radius Geofence (meter)')
-                            ->minValue(10)
-                            ->maxValue(100)
-                            ->default(100)
-                            ->live()
-                            ->tooltips()
-                            ->dehydrated(),
+                        Hidden::make('radius_meters')
+                            ->dehydrated()
+                            ->default(100),
                         LeafletMap::make('geofence_map')
                             ->label('Pick Location & Geofence')
                             ->latStatePath('latitude')

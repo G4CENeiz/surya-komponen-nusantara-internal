@@ -101,9 +101,9 @@
         </label>
         <input
             type="range"
-            min="50"
-            max="500"
-            step="10"
+            min="10"
+            max="100"
+            step="1"
             :value="$wire.$get('{{ $radiusPath }}') || 100"
             x-on:input="updateRadius($event.target.value)"
             class="hidden"
