@@ -3,7 +3,6 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Hrd\Pages\HrdDashboard;
-use App\Filament\Hrd\Widgets\AttendanceTrendChart;
 use App\Filament\Hrd\Widgets\EmployeeDistributionChart;
 use App\Filament\Hrd\Widgets\HrdOverview;
 use App\Filament\Hrd\Widgets\LatestEmployeesWidget;
@@ -52,7 +51,6 @@ class HrdPanelProvider extends PanelProvider
             ->widgets([
                 HrdOverview::class,
                 EmployeeDistributionChart::class,
-                AttendanceTrendChart::class,
                 LatestEmployeesWidget::class,
                 PendingSubmissionsWidget::class,
                 RecentAnnouncementsWidget::class,
