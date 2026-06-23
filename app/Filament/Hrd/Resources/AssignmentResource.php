@@ -71,7 +71,7 @@ class AssignmentResource extends Resource
                 Textarea::make('notes')
                     ->label('Notes')
                     ->rows(3)
-                    ->placeholder('Additional notes or comments...'),
+                    ->placeholder('Catatan atau komentar tambahan...'),
             ]);
     }
 
@@ -88,7 +88,7 @@ class AssignmentResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('creator.name')
                     ->label('Created By')
-                    ->placeholder('Unknown')
+                    ->placeholder('Tidak Diketahui')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('Start Date')

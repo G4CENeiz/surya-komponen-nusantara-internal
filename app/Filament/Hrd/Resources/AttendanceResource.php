@@ -36,7 +36,7 @@ class AttendanceResource extends Resource
                 Textarea::make('notes')
                     ->label('Catatan HR')
                     ->rows(3)
-                    ->placeholder('Add verification notes...'),
+                    ->placeholder('Tambahkan catatan verifikasi...'),
             ]);
     }
 

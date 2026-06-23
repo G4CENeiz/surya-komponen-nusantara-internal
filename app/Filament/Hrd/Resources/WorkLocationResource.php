@@ -49,7 +49,7 @@ class WorkLocationResource extends Resource
                         Textarea::make('address')
                             ->rows(2)
                             ->required()
-                            ->placeholder('Full address'),
+                            ->placeholder('Alamat lengkap'),
                     ])->columns(2),
 
                 Section::make('Geofencing')

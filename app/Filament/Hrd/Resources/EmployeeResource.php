@@ -66,10 +66,10 @@ class EmployeeResource extends Resource
                                 ->schema([
                                     TextInput::make('place_of_birth')
                                         ->maxLength(255)
-                                        ->placeholder('City of birth'),
+                                        ->placeholder('Kota kelahiran'),
                                     DatePicker::make('date_of_birth'),
                                     Select::make('status')
-                                        ->label('Status')
+                                        ->label('Status Kelahiran')
                                         ->options([
                                             'active' => 'Active',
                                             'inactive' => 'Inactive',
@@ -90,7 +90,7 @@ class EmployeeResource extends Resource
                                 ]),
                             Textarea::make('address')
                                 ->rows(2)
-                                ->placeholder('Residential address'),
+                                ->placeholder('Alamat domisili'),
                         ]),
 
                     Step::make('Employment Details')
@@ -103,17 +103,17 @@ class EmployeeResource extends Resource
                                         ->searchable()
                                         ->preload()
                                         ->required()
-                                        ->label('User Account'),
+                                        ->label('Akun Pengguna'),
                                     Select::make('department_id')
                                         ->relationship('department', 'name')
-                                        ->label('Department')
+                                        ->label('Departemen')
                                         ->searchable()
                                         ->preload()
                                         ->required()
                                         ->live(),
                                     Select::make('job_class_id')
                                         ->relationship('jobClass', 'name')
-                                        ->label('Job Class')
+                                        ->label('Kelas Jabatan')
                                         ->searchable()
                                         ->preload()
                                         ->required(),
@@ -156,9 +156,9 @@ class EmployeeResource extends Resource
                                             Department::find($get('department_id'))?->name ?? '',
                                             ['Produksi', 'Gudang', 'Operasional'],
                                         ))
-                                        ->placeholder('Select shift'),
+                                        ->placeholder('Pilih shift'),
                                     TimePicker::make('shift_start_time')
-                                        ->label('Shift Start')
+                                        ->label('Jam Mulai Shift')
                                         ->readOnly()
                                         ->seconds(false)
                                         ->visible(fn (callable $get): bool => in_array(
@@ -166,7 +166,7 @@ class EmployeeResource extends Resource
                                             ['Produksi', 'Gudang', 'Operasional'],
                                         )),
                                     TimePicker::make('shift_end_time')
-                                        ->label('Shift End')
+                                        ->label('Jam Selesai Shift')
                                         ->readOnly()
                                         ->seconds(false)
                                         ->visible(fn (callable $get): bool => in_array(
@@ -177,7 +177,7 @@ class EmployeeResource extends Resource
                                 ->columns(3),
                         ]),
 
-                    Step::make('Work Location')
+                    Step::make('Lokasi Kerja')
                         ->icon('heroicon-o-map-pin')
                         ->schema([
                             Grid::make(2)
@@ -186,18 +186,18 @@ class EmployeeResource extends Resource
                                 ]),
                         ]),
 
-                    Step::make('Face Reference')
+                    Step::make('Foto Referensi')
                         ->icon('heroicon-o-camera')
-                        ->description('Upload a face reference photo for future face recognition integration')
+                        ->description('Unggah foto referensi wajah untuk integrasi pengenalan wajah')
                         ->schema([
                             FileUpload::make('face_photo_path')
-                                ->label('Face Reference')
+                                ->label('Foto Referensi Wajah')
                                 ->image()
                                 ->imageEditor()
                                 ->directory('face-references')
                                 ->visibility('public')
                                 ->maxSize(5120)
-                                ->helperText('Max 5MB. Accepted: jpg, png'),
+                                ->helperText('Maks 5MB. Format: jpg, png'),
                         ]),
                 ])
                     ->columnSpanFull(),
@@ -213,17 +213,17 @@ class EmployeeResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('full_name')
-                    ->label('Name')
+                    ->label('Nama')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('department.name')
-                    ->label('Department')
+                    ->label('Departemen')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('jobClass.name')
-                    ->label('Job Class')
+                    ->label('Kelas Jabatan')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('workplace.name')
-                    ->label('Work Location')
+                    ->label('Lokasi Kerja')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
@@ -247,17 +247,17 @@ class EmployeeResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options([
-                        'active' => 'Active',
-                        'inactive' => 'Inactive',
-                        'on_leave' => 'On Leave',
-                        'sick' => 'Sick',
+                        'active' => 'Aktif',
+                        'inactive' => 'Non-aktif',
+                        'on_leave' => 'Cuti',
+                        'sick' => 'Sakit',
                     ]),
                 Tables\Filters\SelectFilter::make('department_id')
                     ->relationship('department', 'name')
-                    ->label('Department'),
+                    ->label('Departemen'),
                 Tables\Filters\SelectFilter::make('job_class_id')
                     ->relationship('jobClass', 'name')
-                    ->label('Job Class'),
+                    ->label('Kelas Jabatan'),
             ])
             ->actions([
                 Actions\EditAction::make(),

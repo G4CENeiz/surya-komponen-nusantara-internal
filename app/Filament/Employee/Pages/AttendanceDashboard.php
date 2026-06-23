@@ -181,7 +181,7 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
 
                     if (! $verification['verified']) {
                         Notification::make()
-                            ->title('Face verification failed')
+                            ->title('Verifikasi wajah gagal')
                             ->body($verification['message'])
                             ->danger()
                             ->send();
@@ -241,7 +241,7 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
 
                     if (! $verification['verified']) {
                         Notification::make()
-                            ->title('Face verification failed')
+                            ->title('Verifikasi wajah gagal')
                             ->body($verification['message'])
                             ->danger()
                             ->send();
@@ -275,13 +275,13 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
                     ->sortable(),
                 Tables\Columns\TextColumn::make('clock_in_at')
                     ->dateTime('H:i:s')
-                    ->label('Clock In'),
+                    ->label('Jam Masuk'),
                 Tables\Columns\TextColumn::make('clock_out_at')
                     ->dateTime('H:i:s')
-                    ->label('Clock Out'),
+                    ->label('Jam Pulang'),
                 Tables\Columns\TextColumn::make('worked_hours')
                     ->suffix('h')
-                    ->label('Hours'),
+                    ->label('Jam Kerja'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->label('Status')

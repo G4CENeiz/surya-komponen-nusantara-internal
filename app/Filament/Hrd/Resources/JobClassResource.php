@@ -32,12 +32,12 @@ class JobClassResource extends Resource
                     ->label('Job Title')
                     ->required()
                     ->maxLength(255)
-                    ->placeholder('e.g. Staff, Supervisor, Manager'),
+                    ->placeholder('contoh: Staff, Supervisor, Manager'),
                 TextInput::make('code')
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255)
-                    ->placeholder('e.g. STF-001'),
+                    ->placeholder('contoh: STF-001'),
                 TextInput::make('level')
                     ->required()
                     ->numeric()

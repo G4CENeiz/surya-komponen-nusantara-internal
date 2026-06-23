@@ -42,15 +42,15 @@ class AnnouncementResource extends Resource
         return $schema
             ->components([
                 TextInput::make('title')
-                    ->label('Title')
+                    ->label('Judul')
                     ->required()
                     ->maxLength(255),
                 RichEditor::make('content')
-                    ->label('Content')
+                    ->label('Konten')
                     ->required()
                     ->columnSpanFull(),
                 Select::make('target')
-                    ->label('Target Audience')
+                    ->label('Target Audiens')
                     ->options(function () {
                         $departments = Department::pluck('name', 'id')
                             ->mapWithKeys(fn ($name, $id) => [$id => $name]);
@@ -66,7 +66,7 @@ class AnnouncementResource extends Resource
                     ->directory('announcements')
                     ->visibility('public')
                     ->maxSize(10240)
-                    ->helperText('Max 10MB. PDF, images, or documents'),
+                    ->helperText('Maks 10MB. PDF, gambar, atau dokumen'),
                 DatePicker::make('expired_at'),
             ]);
     }
@@ -76,15 +76,15 @@ class AnnouncementResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Title')
+                    ->label('Judul')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('target')
-                    ->label('Target Audience')
+                    ->label('Target Audiens')
                     ->formatStateUsing(fn (string $state): string => $state === 'all' ? 'All Departments' : Department::find($state)?->name ?? $state)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('department.name')
-                    ->label('Department')
+                    ->label('Departemen')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('published_at')
                     ->dateTime()

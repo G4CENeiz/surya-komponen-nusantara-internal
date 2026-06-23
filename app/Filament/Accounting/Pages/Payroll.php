@@ -149,7 +149,7 @@ class Payroll extends Page implements HasForms
                 ->action('exportExcel'),
 
             Action::make('generatePayroll')
-                ->label('Generate Payroll')
+                ->label('Generate Slip Gaji')
                 ->color('primary')
                 ->icon('heroicon-o-document-text')
                 ->action('generatePayroll'),
