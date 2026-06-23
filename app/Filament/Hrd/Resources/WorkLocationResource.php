@@ -68,7 +68,6 @@ class WorkLocationResource extends Resource
                             ->default(100)
                             ->live()
                             ->tooltips()
-                            ->displayValue(fn ($state): string => $state . ' m')
                             ->dehydrated(),
                         LeafletMap::make('geofence_map')
                             ->label('Pick Location & Geofence')
