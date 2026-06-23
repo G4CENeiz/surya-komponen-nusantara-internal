@@ -9,7 +9,7 @@ use Filament\Widgets\TableWidget;
 
 class LatestEmployeesWidget extends TableWidget
 {
-    protected static ?string $heading = 'Recent Hires';
+    protected static ?string $heading = 'Karyawan Terbaru';
 
     protected static ?int $sort = 2;
 
@@ -23,16 +23,17 @@ class LatestEmployeesWidget extends TableWidget
             ->query(Employee::query()->with(['department', 'jobClass'])->latest('hire_date'))
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
-                    ->label('Name')
+                    ->label('Nama')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('department.name')
                     ->label('Dept')
                     ->limit(12),
                 Tables\Columns\TextColumn::make('jobClass.name')
-                    ->label('Job')
+                    ->label('Jabatan')
                     ->limit(12),
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'active' => 'success',
@@ -41,7 +42,7 @@ class LatestEmployeesWidget extends TableWidget
                         'sick' => 'info',
                     }),
                 Tables\Columns\TextColumn::make('hire_date')
-                    ->label('Joined')
+                    ->label('Tanggal Masuk')
                     ->date()
                     ->sortable(),
             ])

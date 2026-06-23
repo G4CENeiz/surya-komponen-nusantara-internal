@@ -25,11 +25,11 @@ class AssignmentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Communications';
+    protected static string|UnitEnum|null $navigationGroup = 'Komunikasi';
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Assignments';
+    protected static ?string $navigationLabel = 'Penugasan';
 
     protected static ?string $recordTitleAttribute = 'title';
 

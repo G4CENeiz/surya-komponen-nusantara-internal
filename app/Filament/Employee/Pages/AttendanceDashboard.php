@@ -30,9 +30,9 @@ class AttendanceDashboard extends Page implements Tables\Contracts\HasTable
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationLabel = 'Attendance Dashboard';
+    protected static ?string $navigationLabel = 'Dashboard Absensi';
 
-    protected static ?string $title = 'Attendance Dashboard';
+    protected static ?string $title = 'Dashboard Absensi';
 
     public bool $canClockIn = false;
 

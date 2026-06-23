@@ -30,9 +30,9 @@ class LeaveRequestResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Pengajuan Cuti/Sakit/Lembur';
+    protected static ?string $navigationLabel = 'Pengajuan Karyawan';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Approval';
+    protected static string|UnitEnum|null $navigationGroup = 'Persetujuan';
 
     protected static ?int $navigationSort = 1;
 

@@ -2,107 +2,153 @@
 
 namespace App\Filament\Accounting\Pages;
 
-use Filament\Pages\Page;
-use Filament\Forms\Contracts\HasForms;
+use App\Models\Attendance;
+use App\Models\Department;
+use App\Models\Employee;
+use App\Models\JobClass;
+use App\Models\Overtime;
+use App\Models\PayrollSetting;
+use App\Models\Payslip;
+use App\Models\Reimbursement;
+use App\Models\TimeOff;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class Payroll extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-currency-dollar';
-    protected static ?string $navigationLabel = 'Payroll';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-currency-dollar';
+
+    protected static ?string $navigationLabel = 'Slip Gaji';
+
     protected static ?int $navigationSort = 5;
+
     protected static ?string $title = 'Kelola Penggajian';
 
     protected string $view = 'filament.accounting.pages.payroll';
 
     public array $payrollData = [];
+
     public $searchQuery = '';
+
     public $filterDept = '';
+
     public $filterClass = '';
+
     public $payrollHistory = [];
+
     public $currentPage = 1;
 
     public $isViewingHistory = false;
+
     public $historyMonth = null;
+
     public $historyYear = null;
-    
+
     public $employeeHistoryModalOpen = false;
+
     public $employeeHistoryDetails = [];
 
     public $isEditing = false;
+
     public $editingIndex = null;
+
     public $editName = '';
+
     public ?array $filterData = [];
+
     public $editBasic = 0;
-    
+
     // Pagination
     public $perPage = 10;
+
     public $editOvertime = 0;
+
     public $editDedBpjsKesehatan = 0;
+
     public $editDedBpjsKetenagakerjaan = 0;
+
     public $editDedPph21 = 0;
+
     public $editDedLate = 0;
+
     public $editDedLoan = 0;
+
     public $editDeductions = 0;
+
     public $editThp = 0;
+
     public $editReimburse = 0;
 
     public $editOvertimeHours = 0;
+
     public $editLateFrequency = 0;
+
     public $overtimeRate = 0;
+
     public $latePenalty = 0;
+
     public $bpjsKesRate = 0;
+
     public $bpjsTkRate = 0;
+
     public $editAllowance = 0;
 
     public function mount()
     {
-        $overtimeSetting = \App\Models\PayrollSetting::where('key', 'overtime_rate')->first();
-        $this->overtimeRate = $overtimeSetting ? (int)$overtimeSetting->value : 0;
-        
-        $lateSetting = \App\Models\PayrollSetting::where('key', 'late_penalty')->first();
-        $this->latePenalty = $lateSetting ? (int)$lateSetting->value : 0;
+        $overtimeSetting = PayrollSetting::where('key', 'overtime_rate')->first();
+        $this->overtimeRate = $overtimeSetting ? (int) $overtimeSetting->value : 0;
 
-        $bpjsKesSetting = \App\Models\PayrollSetting::where('key', 'bpjs_kes_percent')->first();
-        $this->bpjsKesRate = $bpjsKesSetting ? (float)$bpjsKesSetting->value : 0;
+        $lateSetting = PayrollSetting::where('key', 'late_penalty')->first();
+        $this->latePenalty = $lateSetting ? (int) $lateSetting->value : 0;
 
-        $bpjsTkSetting = \App\Models\PayrollSetting::where('key', 'bpjs_tk_percent')->first();
-        $this->bpjsTkRate = $bpjsTkSetting ? (float)$bpjsTkSetting->value : 0;
+        $bpjsKesSetting = PayrollSetting::where('key', 'bpjs_kes_percent')->first();
+        $this->bpjsKesRate = $bpjsKesSetting ? (float) $bpjsKesSetting->value : 0;
+
+        $bpjsTkSetting = PayrollSetting::where('key', 'bpjs_tk_percent')->first();
+        $this->bpjsTkRate = $bpjsTkSetting ? (float) $bpjsTkSetting->value : 0;
 
         $this->loadData();
     }
 
     public function getCurrentPeriod()
     {
-        $months = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
+        $months = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
         $month = $this->isViewingHistory ? $this->historyMonth : now()->month;
         $year = $this->isViewingHistory ? $this->historyYear : now()->year;
+
         return [
             'month' => $month,
             'year' => $year,
-            'text' => $months[$month] . ' ' . $year
+            'text' => $months[$month].' '.$year,
         ];
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('closeHistoryDetail')
+            Action::make('closeHistoryDetail')
                 ->label('Kembali')
                 ->color('gray')
                 ->icon('heroicon-o-arrow-left')
                 ->action('closeHistoryDetail')
                 ->visible(fn () => $this->isViewingHistory),
-            
-            \Filament\Actions\Action::make('exportExcel')
+
+            Action::make('exportExcel')
                 ->label('Ekspor Excel')
                 ->color('gray')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action('exportExcel'),
-                
-            \Filament\Actions\Action::make('generatePayroll')
+
+            Action::make('generatePayroll')
                 ->label('Generate Payroll')
                 ->color('primary')
                 ->icon('heroicon-o-document-text')
@@ -131,21 +177,21 @@ class Payroll extends Page implements HasForms
     public function openEmployeeHistoryDetail($userId)
     {
         $this->employeeHistoryDetails = [
-            'name' => \App\Models\Employee::where('user_id', $userId)->first()->full_name ?? 'Unknown',
-            'lates' => \App\Models\Attendance::where('user_id', $userId)
-                        ->whereMonth('date', $this->historyMonth)
-                        ->whereYear('date', $this->historyYear)
-                        ->where('is_late', true)
-                        ->get(),
-            'overtimes' => \App\Models\Overtime::where('user_id', $userId)
-                        ->whereMonth('date', $this->historyMonth)
-                        ->whereYear('date', $this->historyYear)
-                        ->where('status', 'approved')
-                        ->get(),
-            'timeoffs' => \App\Models\TimeOff::where('user_id', $userId)
-                        ->whereMonth('start_date', $this->historyMonth)
-                        ->whereYear('start_date', $this->historyYear)
-                        ->get(),
+            'name' => Employee::where('user_id', $userId)->first()->full_name ?? 'Unknown',
+            'lates' => Attendance::where('user_id', $userId)
+                ->whereMonth('date', $this->historyMonth)
+                ->whereYear('date', $this->historyYear)
+                ->where('is_late', true)
+                ->get(),
+            'overtimes' => Overtime::where('user_id', $userId)
+                ->whereMonth('date', $this->historyMonth)
+                ->whereYear('date', $this->historyYear)
+                ->where('status', 'approved')
+                ->get(),
+            'timeoffs' => TimeOff::where('user_id', $userId)
+                ->whereMonth('start_date', $this->historyMonth)
+                ->whereYear('start_date', $this->historyYear)
+                ->get(),
         ];
         $this->employeeHistoryModalOpen = true;
     }
@@ -169,17 +215,19 @@ class Payroll extends Page implements HasForms
         $year = $period['year'];
 
         if ($this->isViewingHistory) {
-            $payslips = \App\Models\Payslip::with(['employee.department', 'employee.jobClass'])
+            $payslips = Payslip::with(['employee.department', 'employee.jobClass'])
                 ->where('period_month', $month)
                 ->where('period_year', $year)
                 ->get();
-            
+
             $this->payrollData = [];
             foreach ($payslips as $payslip) {
                 $emp = $payslip->employee;
-                if (!$emp) continue;
+                if (! $emp) {
+                    continue;
+                }
                 $components = $payslip->components_detail ?? [];
-                
+
                 $this->payrollData[] = [
                     'id' => $emp->id,
                     'user_id' => $emp->user_id,
@@ -203,25 +251,26 @@ class Payroll extends Page implements HasForms
                     'late_frequency' => $components['late_frequency'] ?? 0,
                 ];
             }
+
             return; // Early return for massive performance boost
         }
 
-        $employees = \App\Models\Employee::active()->get();
-        $payslips = \App\Models\Payslip::where('period_month', $month)->where('period_year', $year)->get()->keyBy('employee_id');
+        $employees = Employee::active()->get();
+        $payslips = Payslip::where('period_month', $month)->where('period_year', $year)->get()->keyBy('employee_id');
 
-        $overtimes = \App\Models\Overtime::whereMonth('date', $month)
+        $overtimes = Overtime::whereMonth('date', $month)
             ->whereYear('date', $year)
             ->where('status', 'approved')
             ->get()
             ->groupBy('user_id');
 
-        $attendances = \App\Models\Attendance::whereMonth('date', $month)
+        $attendances = Attendance::whereMonth('date', $month)
             ->whereYear('date', $year)
             ->where('is_late', true)
             ->get()
             ->groupBy('user_id');
 
-        $reimbursements = \App\Models\Reimbursement::whereMonth('approved_at', $month)
+        $reimbursements = Reimbursement::whereMonth('approved_at', $month)
             ->whereYear('approved_at', $year)
             ->where('status', 'approved')
             ->get()
@@ -231,7 +280,7 @@ class Payroll extends Page implements HasForms
         foreach ($employees as $emp) {
             $payslip = $payslips->get($emp->id);
             $components = $payslip ? $payslip->components_detail : [];
-            
+
             $defaultOvertimeHours = 0;
             if (isset($overtimes[$emp->user_id])) {
                 $totalMinutes = $overtimes[$emp->user_id]->sum('duration_minutes');
@@ -263,7 +312,7 @@ class Payroll extends Page implements HasForms
             $bpjsTk = $payslip ? ($components['ded_bpjs_tk'] ?? 0) : $defaultBpjsTk;
             $pph21 = $payslip ? ($components['ded_pph'] ?? 0) : $defaultPph21;
             $loan = $payslip ? ($components['ded_loan'] ?? 0) : 0;
-            
+
             $jobClass = $emp->jobClass;
             $defaultAllowance = $jobClass ? $jobClass->base_allowance : 0;
             $allowance = $payslip ? $payslip->total_allowance : $defaultAllowance;
@@ -272,7 +321,7 @@ class Payroll extends Page implements HasForms
 
             // Reimburse is added to THP but not taxed
             $thp = $payslip ? $payslip->net_salary : ($emp->base_salary + $allowance + $otPay + $reimburseTotal - $totalDeduction);
-            
+
             $this->payrollData[] = [
                 'id' => $emp->id,
                 'payslip_id' => $payslip?->id,
@@ -299,16 +348,16 @@ class Payroll extends Page implements HasForms
         }
 
         // Load History (only when NOT viewing history detail)
-        if (!$this->isViewingHistory) {
-            $historyRecords = \Illuminate\Support\Facades\DB::table('payslips')
-                ->selectRaw("period_month as month, period_year as year, count(*) as count, sum(net_salary) as total_thp")
+        if (! $this->isViewingHistory) {
+            $historyRecords = DB::table('payslips')
+                ->selectRaw('period_month as month, period_year as year, count(*) as count, sum(net_salary) as total_thp')
                 // Check if all are paid or not. For sqlite/mysql max(status) works loosely. Let's just assume if it exists it's generated, if all are published/paid we can check.
                 // We will just use 'Published' since we only save to db when generated/verified/published.
-                ->where(function($q) use ($month, $year) {
+                ->where(function ($q) use ($month, $year) {
                     $q->where('period_year', '<', $year)
-                      ->orWhere(function($q2) use ($month, $year) {
-                          $q2->where('period_year', $year)->where('period_month', '<', $month);
-                      });
+                        ->orWhere(function ($q2) use ($month, $year) {
+                            $q2->where('period_year', $year)->where('period_month', '<', $month);
+                        });
                 })
                 ->groupBy('period_year', 'period_month')
                 ->orderBy('period_year', 'desc')
@@ -327,24 +376,23 @@ class Payroll extends Page implements HasForms
             }
         }
 
-
     }
 
-    public function form(\Filament\Schemas\Schema $form): \Filament\Schemas\Schema
+    public function form(Schema $form): Schema
     {
         return $form
             ->schema([
-                \Filament\Forms\Components\Select::make('dept')
-                    ->options(\App\Models\Department::pluck('name', 'name'))
+                Select::make('dept')
+                    ->options(Department::pluck('name', 'name'))
                     ->native(false)
                     ->live()
                     ->searchable()
                     ->placeholder('Semua Dept')
                     ->hiddenLabel()
                     ->extraAttributes(['class' => 'w-full sm:w-48']),
-                
-                \Filament\Forms\Components\Select::make('class')
-                    ->options(\App\Models\JobClass::pluck('name', 'name'))
+
+                Select::make('class')
+                    ->options(JobClass::pluck('name', 'name'))
                     ->native(false)
                     ->live()
                     ->searchable()
@@ -360,18 +408,18 @@ class Payroll extends Page implements HasForms
     {
         $data = $this->payrollData;
 
-        if (!empty($this->searchQuery)) {
+        if (! empty($this->searchQuery)) {
             $data = array_filter($data, function ($item) {
                 return stripos($item['name'], $this->searchQuery) !== false || stripos($item['nik'], $this->searchQuery) !== false;
             });
         }
 
-        if (!empty($this->filterData['dept'])) {
-            $data = array_filter($data, fn($item) => $item['dept'] === $this->filterData['dept']);
+        if (! empty($this->filterData['dept'])) {
+            $data = array_filter($data, fn ($item) => $item['dept'] === $this->filterData['dept']);
         }
 
-        if (!empty($this->filterData['class'])) {
-            $data = array_filter($data, fn($item) => $item['class'] === $this->filterData['class']);
+        if (! empty($this->filterData['class'])) {
+            $data = array_filter($data, fn ($item) => $item['class'] === $this->filterData['class']);
         }
 
         return $data;
@@ -381,12 +429,14 @@ class Payroll extends Page implements HasForms
     {
         $filtered = $this->filteredPayrollData;
         $offset = ($this->currentPage - 1) * $this->perPage;
+
         return array_slice($filtered, $offset, $this->perPage, true);
     }
 
     public function getTotalPagesProperty()
     {
         $total = count($this->filteredPayrollData);
+
         return $total > 0 ? ceil($total / $this->perPage) : 1;
     }
 
@@ -409,7 +459,10 @@ class Payroll extends Page implements HasForms
         $this->currentPage = $page;
     }
 
-    public function updatedSearchQuery() { $this->currentPage = 1; }
+    public function updatedSearchQuery()
+    {
+        $this->currentPage = 1;
+    }
 
     public function openEditModal($index)
     {
@@ -430,7 +483,7 @@ class Payroll extends Page implements HasForms
         $this->editDeductions = $data['deductions'];
         $this->editThp = $data['thp'];
         $this->isEditing = true;
-        
+
         // Auto-calculate on open in case it's a new row
         $this->recalculate();
     }
@@ -441,26 +494,55 @@ class Payroll extends Page implements HasForms
         $this->editingIndex = null;
     }
 
-    public function updatedEditOvertime() { $this->recalculate(); }
-    public function updatedEditAllowance() { $this->recalculate(); }
-    public function updatedEditOvertimeHours() {
-        $this->editOvertime = (int)$this->editOvertimeHours * $this->overtimeRate;
+    public function updatedEditOvertime()
+    {
         $this->recalculate();
     }
-    public function updatedEditDedBpjsKesehatan() { $this->recalculate(); }
-    public function updatedEditDedBpjsKetenagakerjaan() { $this->recalculate(); }
-    // We don't trigger recalculate from updatedEditDedPph21 because we are auto-calculating it, 
+
+    public function updatedEditAllowance()
+    {
+        $this->recalculate();
+    }
+
+    public function updatedEditOvertimeHours()
+    {
+        $this->editOvertime = (int) $this->editOvertimeHours * $this->overtimeRate;
+        $this->recalculate();
+    }
+
+    public function updatedEditDedBpjsKesehatan()
+    {
+        $this->recalculate();
+    }
+
+    public function updatedEditDedBpjsKetenagakerjaan()
+    {
+        $this->recalculate();
+    }
+
+    // We don't trigger recalculate from updatedEditDedPph21 because we are auto-calculating it,
     // unless the user overrides it. If they override it, we just update THP.
-    public function updatedEditDedPph21() { 
-        $this->editDeductions = (int)$this->editDedBpjsKesehatan + (int)$this->editDedBpjsKetenagakerjaan + (int)$this->editDedPph21 + (int)$this->editDedLate + (int)$this->editDedLoan;
-        $this->editThp = $this->editBasic + (int)$this->editOvertime + (int)$this->editReimburse - $this->editDeductions;
+    public function updatedEditDedPph21()
+    {
+        $this->editDeductions = (int) $this->editDedBpjsKesehatan + (int) $this->editDedBpjsKetenagakerjaan + (int) $this->editDedPph21 + (int) $this->editDedLate + (int) $this->editDedLoan;
+        $this->editThp = $this->editBasic + (int) $this->editOvertime + (int) $this->editReimburse - $this->editDeductions;
     }
-    public function updatedEditDedLate() { $this->recalculate(); }
-    public function updatedEditLateFrequency() {
-        $this->editDedLate = (int)$this->editLateFrequency * $this->latePenalty;
+
+    public function updatedEditDedLate()
+    {
         $this->recalculate();
     }
-    public function updatedEditDedLoan() { $this->recalculate(); }
+
+    public function updatedEditLateFrequency()
+    {
+        $this->editDedLate = (int) $this->editLateFrequency * $this->latePenalty;
+        $this->recalculate();
+    }
+
+    public function updatedEditDedLoan()
+    {
+        $this->recalculate();
+    }
 
     private function calculatePph21($grossIncome, $ptkp)
     {
@@ -468,38 +550,67 @@ class Payroll extends Page implements HasForms
         // Category A: TK/0, TK/1, K/0
         // Category B: TK/2, TK/3, K/1, K/2
         // Category C: K/3
-        
+
         $category = 'A';
-        if (in_array($ptkp, ['TK/2', 'TK/3', 'K/1', 'K/2'])) $category = 'B';
-        if ($ptkp === 'K/3') $category = 'C';
+        if (in_array($ptkp, ['TK/2', 'TK/3', 'K/1', 'K/2'])) {
+            $category = 'B';
+        }
+        if ($ptkp === 'K/3') {
+            $category = 'C';
+        }
 
         $rate = 0;
 
         if ($category === 'A') {
-            if ($grossIncome <= 5400000) $rate = 0;
-            elseif ($grossIncome <= 5650000) $rate = 0.25;
-            elseif ($grossIncome <= 5950000) $rate = 0.5;
-            elseif ($grossIncome <= 6300000) $rate = 0.75;
-            elseif ($grossIncome <= 6750000) $rate = 1.0;
-            elseif ($grossIncome <= 7150000) $rate = 1.25;
-            elseif ($grossIncome <= 7300000) $rate = 1.5;
-            elseif ($grossIncome <= 9200000) $rate = 1.75;
-            elseif ($grossIncome <= 9650000) $rate = 2.0;
-            elseif ($grossIncome <= 10050000) $rate = 2.25;
-            else $rate = 2.5; // disederhanakan
+            if ($grossIncome <= 5400000) {
+                $rate = 0;
+            } elseif ($grossIncome <= 5650000) {
+                $rate = 0.25;
+            } elseif ($grossIncome <= 5950000) {
+                $rate = 0.5;
+            } elseif ($grossIncome <= 6300000) {
+                $rate = 0.75;
+            } elseif ($grossIncome <= 6750000) {
+                $rate = 1.0;
+            } elseif ($grossIncome <= 7150000) {
+                $rate = 1.25;
+            } elseif ($grossIncome <= 7300000) {
+                $rate = 1.5;
+            } elseif ($grossIncome <= 9200000) {
+                $rate = 1.75;
+            } elseif ($grossIncome <= 9650000) {
+                $rate = 2.0;
+            } elseif ($grossIncome <= 10050000) {
+                $rate = 2.25;
+            } else {
+                $rate = 2.5;
+            } // disederhanakan
         } elseif ($category === 'B') {
-            if ($grossIncome <= 6200000) $rate = 0;
-            elseif ($grossIncome <= 6500000) $rate = 0.25;
-            elseif ($grossIncome <= 6850000) $rate = 0.5;
-            elseif ($grossIncome <= 7300000) $rate = 0.75;
-            elseif ($grossIncome <= 9200000) $rate = 1.0;
-            else $rate = 1.5; // disederhanakan
+            if ($grossIncome <= 6200000) {
+                $rate = 0;
+            } elseif ($grossIncome <= 6500000) {
+                $rate = 0.25;
+            } elseif ($grossIncome <= 6850000) {
+                $rate = 0.5;
+            } elseif ($grossIncome <= 7300000) {
+                $rate = 0.75;
+            } elseif ($grossIncome <= 9200000) {
+                $rate = 1.0;
+            } else {
+                $rate = 1.5;
+            } // disederhanakan
         } else {
-            if ($grossIncome <= 6600000) $rate = 0;
-            elseif ($grossIncome <= 6950000) $rate = 0.25;
-            elseif ($grossIncome <= 7350000) $rate = 0.5;
-            elseif ($grossIncome <= 7800000) $rate = 0.75;
-            else $rate = 1.25; // disederhanakan
+            if ($grossIncome <= 6600000) {
+                $rate = 0;
+            } elseif ($grossIncome <= 6950000) {
+                $rate = 0.25;
+            } elseif ($grossIncome <= 7350000) {
+                $rate = 0.5;
+            } elseif ($grossIncome <= 7800000) {
+                $rate = 0.75;
+            } else {
+                $rate = 1.25;
+            } // disederhanakan
         }
 
         return ($grossIncome * $rate) / 100;
@@ -507,10 +618,10 @@ class Payroll extends Page implements HasForms
 
     private function recalculate()
     {
-        $grossIncome = $this->editBasic + (int)$this->editAllowance + (int)$this->editOvertime;
+        $grossIncome = $this->editBasic + (int) $this->editAllowance + (int) $this->editOvertime;
 
-        $this->editDeductions = (int)$this->editDedBpjsKesehatan + (int)$this->editDedBpjsKetenagakerjaan + (int)$this->editDedPph21 + (int)$this->editDedLate;
-        $this->editThp = $grossIncome + (int)$this->editReimburse - $this->editDeductions;
+        $this->editDeductions = (int) $this->editDedBpjsKesehatan + (int) $this->editDedBpjsKetenagakerjaan + (int) $this->editDedPph21 + (int) $this->editDedLate;
+        $this->editThp = $grossIncome + (int) $this->editReimburse - $this->editDeductions;
     }
 
     private function saveToDb($status)
@@ -520,7 +631,7 @@ class Payroll extends Page implements HasForms
         $month = $period['month'];
         $year = $period['year'];
 
-        \App\Models\Payslip::updateOrCreate([
+        Payslip::updateOrCreate([
             'employee_id' => $data['id'],
             'period_month' => $month,
             'period_year' => $year,
@@ -541,9 +652,9 @@ class Payroll extends Page implements HasForms
                 'ded_late' => $this->editDedLate,
                 'ded_loan' => $this->editDedLoan,
                 'reimbursement' => $this->editReimburse,
-            ]
+            ],
         ]);
-        
+
         $this->loadData();
     }
 
@@ -551,10 +662,10 @@ class Payroll extends Page implements HasForms
     {
         $this->saveToDb('draft');
         $this->closeEditModal();
-        
-        \Filament\Notifications\Notification::make()
+
+        Notification::make()
             ->title('Disimpan sebagai Draft')
-            ->body('Rincian penggajian ' . $this->editName . ' telah disimpan.')
+            ->body('Rincian penggajian '.$this->editName.' telah disimpan.')
             ->success()
             ->send();
     }
@@ -563,10 +674,10 @@ class Payroll extends Page implements HasForms
     {
         $this->saveToDb('validated');
         $this->closeEditModal();
-        
-        \Filament\Notifications\Notification::make()
+
+        Notification::make()
             ->title('Tersimpan & Di-ACC')
-            ->body('Rincian penggajian ' . $this->editName . ' telah di-ACC dan ditandai Verified.')
+            ->body('Rincian penggajian '.$this->editName.' telah di-ACC dan ditandai Verified.')
             ->success()
             ->send();
     }
@@ -583,7 +694,7 @@ class Payroll extends Page implements HasForms
                 continue;
             }
 
-            \App\Models\Payslip::updateOrCreate([
+            Payslip::updateOrCreate([
                 'employee_id' => $data['id'],
                 'period_month' => $month,
                 'period_year' => $year,
@@ -604,13 +715,13 @@ class Payroll extends Page implements HasForms
                     'ded_late' => $data['ded_late'],
                     'ded_loan' => $data['ded_loan'],
                     'reimbursement' => $data['reimburse'],
-                ]
+                ],
             ]);
         }
 
         $this->loadData();
-        
-        \Filament\Notifications\Notification::make()
+
+        Notification::make()
             ->title('Berhasil dipublish secara massal')
             ->body("Semua slip gaji draft untuk periode $periode telah dipublish.")
             ->success()
@@ -621,22 +732,22 @@ class Payroll extends Page implements HasForms
     {
         $data = $this->filteredPayrollData;
         $periodText = $this->getCurrentPeriod()['text'];
-        $filename = "Rekap_Payroll_" . str_replace(' ', '_', $periodText) . ".csv";
+        $filename = 'Rekap_Payroll_'.str_replace(' ', '_', $periodText).'.csv';
 
-        $callback = function() use($data) {
+        $callback = function () use ($data) {
             $file = fopen('php://output', 'w');
             // Menambahkan BOM untuk UTF-8 agar bisa dibaca Excel dengan baik
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($file, [
-                'NIK', 'Nama Pegawai', 'Departemen', 'Kelas Jabatan', 
-                'Gaji Pokok', 'Tunjangan Jabatan', 'Honor Lembur', 'Reimbursement', 
-                'BPJS Kesehatan', 'BPJS Ketenagakerjaan', 'PPh 21', 'Pot. Telat', 
-                'Total Potongan', 'Take Home Pay', 'Status'
+                'NIK', 'Nama Pegawai', 'Departemen', 'Kelas Jabatan',
+                'Gaji Pokok', 'Tunjangan Jabatan', 'Honor Lembur', 'Reimbursement',
+                'BPJS Kesehatan', 'BPJS Ketenagakerjaan', 'PPh 21', 'Pot. Telat',
+                'Total Potongan', 'Take Home Pay', 'Status',
             ], ';');
 
             foreach ($data as $row) {
                 fputcsv($file, [
-                    "'" . $row['nik'],
+                    "'".$row['nik'],
                     $row['name'],
                     $row['dept'],
                     $row['class'],
@@ -650,7 +761,7 @@ class Payroll extends Page implements HasForms
                     $row['ded_late'] ?? 0,
                     $row['deductions'],
                     $row['thp'],
-                    $row['status']
+                    $row['status'],
                 ], ';');
             }
             fclose($file);
@@ -662,13 +773,13 @@ class Payroll extends Page implements HasForms
     public function generatePayroll()
     {
         $period = $this->getCurrentPeriod();
-        
-        $cacheKey = 'payroll_print_' . auth()->id();
-        \Illuminate\Support\Facades\Cache::put($cacheKey, $this->filteredPayrollData, 60);
+
+        $cacheKey = 'payroll_print_'.auth()->id();
+        Cache::put($cacheKey, $this->filteredPayrollData, 60);
 
         return redirect()->route('payroll.print', [
             'month' => $period['month'],
-            'year' => $period['year']
+            'year' => $period['year'],
         ]);
     }
 
@@ -683,7 +794,7 @@ class Payroll extends Page implements HasForms
         $this->historyMonth = $month;
         $this->historyYear = $year;
         $this->loadData();
-        
+
         $response = $this->exportExcel();
 
         // Revert
@@ -706,7 +817,7 @@ class Payroll extends Page implements HasForms
         $this->historyMonth = $month;
         $this->historyYear = $year;
         $this->loadData();
-        
+
         $response = $this->generatePayroll();
 
         // Revert

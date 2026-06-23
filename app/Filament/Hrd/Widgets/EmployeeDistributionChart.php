@@ -7,7 +7,7 @@ use Filament\Widgets\ChartWidget;
 
 class EmployeeDistributionChart extends ChartWidget
 {
-    protected ?string $heading = 'Employees by Department';
+    protected ?string $heading = 'Karyawan per Departemen';
 
     protected static ?int $sort = 1;
 

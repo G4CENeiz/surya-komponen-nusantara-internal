@@ -20,7 +20,7 @@ class HrdDashboard extends Dashboard
 
     public function getTitle(): string
     {
-        return 'HRD Dashboard';
+        return 'Dashboard HRD';
     }
 
     public function filtersForm(Schema $schema): Schema
@@ -28,11 +28,11 @@ class HrdDashboard extends Dashboard
         return $schema
             ->components([
                 DatePicker::make('dateFrom')
-                    ->label('From')
+                    ->label('Dari')
                     ->native(false)
                     ->live(),
                 DatePicker::make('dateTo')
-                    ->label('To')
+                    ->label('Sampai')
                     ->native(false)
                     ->live(),
             ])

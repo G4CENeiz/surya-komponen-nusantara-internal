@@ -21,11 +21,11 @@ class AttendanceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Operations';
+    protected static string|UnitEnum|null $navigationGroup = 'Operasional';
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Attendance Verification';
+    protected static ?string $navigationLabel = 'Verifikasi Absensi';
 
     protected static ?string $recordTitleAttribute = 'date';
 

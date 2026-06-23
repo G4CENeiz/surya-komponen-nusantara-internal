@@ -67,33 +67,33 @@ class HrdOverview extends StatsOverviewWidget
         $suspicious = Attendance::where('is_suspicious', true)->count();
 
         return [
-            Stat::make('Total Employees', $totalEmployees)
-                ->description($totalEmployees.' active staff')
+            Stat::make('Total Karyawan', $totalEmployees)
+                ->description($totalEmployees.' karyawan aktif')
                 ->descriptionIcon('heroicon-o-users')
                 ->color('primary'),
 
-            Stat::make('Present Today', $presentToday)
-                ->description($presentToday.' of '.$totalEmployees.' checked in')
+            Stat::make('Hadir Hari Ini', $presentToday)
+                ->description($presentToday.' dari '.$totalEmployees.' sudah check in')
                 ->descriptionIcon('heroicon-o-check-badge')
                 ->color('success'),
 
-            Stat::make('On Leave', $onLeave)
-                ->description($onLeave.' approved leaves')
+            Stat::make('Cuti', $onLeave)
+                ->description($onLeave.' cuti disetujui')
                 ->descriptionIcon('heroicon-o-calendar-days')
                 ->color('warning'),
 
-            Stat::make('Sick', $sick)
-                ->description($sick.' approved sick leave')
+            Stat::make('Sakit', $sick)
+                ->description($sick.' surat sakit disetujui')
                 ->descriptionIcon('heroicon-o-heart')
                 ->color('danger'),
 
-            Stat::make('Pending Requests', $pendingApprovals)
-                ->description($pendingApprovals > 0 ? $pendingApprovals.' need review' : 'All caught up!')
+            Stat::make('Menunggu Persetujuan', $pendingApprovals)
+                ->description($pendingApprovals > 0 ? $pendingApprovals.' perlu ditinjau' : 'Semua sudah ditinjau!')
                 ->descriptionIcon('heroicon-o-arrow-path')
                 ->color($pendingApprovals > 0 ? 'warning' : 'success'),
 
-            Stat::make('Suspicious', $suspicious)
-                ->description($suspicious > 0 ? $suspicious.' photos need verification' : 'All clear')
+            Stat::make('Absensi Mencurigakan', $suspicious)
+                ->description($suspicious > 0 ? $suspicious.' foto perlu diverifikasi' : 'Semua aman')
                 ->descriptionIcon('heroicon-o-shield-exclamation')
                 ->color($suspicious > 0 ? 'danger' : 'success'),
         ];

@@ -6,8 +6,10 @@ use Filament\Widgets\ChartWidget;
 
 class SalaryExpenseChart extends ChartWidget
 {
-    protected ?string $heading = 'Komposisi Beban Gaji (Juni 2026)';
+    protected ?string $heading = 'Komposisi Beban Gaji';
+
     protected static ?int $sort = 2;
+
     protected ?string $maxHeight = '300px';
 
     protected function getData(): array

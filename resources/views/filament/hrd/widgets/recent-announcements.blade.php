@@ -3,10 +3,10 @@
         <x-filament::section>
             <x-slot name="heading">
                 <div class="flex items-center justify-between">
-                    <span>Recent Announcements</span>
+                    <span>Pengumuman Terbaru</span>
                     <a href="{{ \App\Filament\Hrd\Resources\AnnouncementResource::getUrl('index') }}"
                        class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400">
-                        View all →
+                        Lihat semua →
                     </a>
                 </div>
             </x-slot>
@@ -15,7 +15,7 @@
 
             @if($announcements->isEmpty())
                 <p class="text-center text-xs text-gray-400 dark:text-gray-500 py-4">
-                    No announcements yet
+                    Belum ada pengumuman
                 </p>
             @else
                 <div class="space-y-3">
@@ -31,8 +31,8 @@
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $announcement->title }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    by {{ $announcement->creator?->name ?? 'Unknown' }}
-                                    · {{ $announcement->published_at?->diffForHumans() ?? 'Draft' }}
+                                    oleh {{ $announcement->creator?->name ?? 'Tidak Diketahui' }}
+                                    · {{ $announcement->published_at?->diffForHumans() ?? 'Draf' }}
                                 </p>
                             </div>
                             <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
